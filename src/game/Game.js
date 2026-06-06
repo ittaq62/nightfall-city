@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import PlayerController from './PlayerController.js';
 import CityBuilder from './CityBuilder.js';
 import NPC from './NPC.js';
+import Vehicle from './Vehicle.js';
 import HUD from './HUD.js';
 import InventorySystem from './InventorySystem.js';
 import MissionSystem from './MissionSystem.js';
@@ -116,6 +117,10 @@ export default class Game {
       chatLine: 'Garde l\'oeil ouvert, gamin.',
     });
     this.npcs = [this.tony, this.maria, this.vince];
+
+    // Drivable vehicle, parked on the road near the spawn
+    this.vehicle = new Vehicle(this.scene, new THREE.Vector3(6, 0, 5), Math.PI, 0x991f2a);
+    this.mode = 'foot'; // 'foot' | 'drive'
 
     this.mission = new MissionSystem(this.playerState, this.inventory, this.hud, this.audio);
     this.shop = new ShopSystem(this.playerState, this.inventory, this.hud, this.audio);
@@ -244,15 +249,73 @@ export default class Game {
     location.reload();
   }
 
+  enterVehicle() {
+    this.mode = 'drive';
+    this.player.group.visible = false;
+    this.vehicle.setRingVisible(false);
+    this.vehicle.setHeadlights(true);
+    this.audio.startEngine();
+    this.hud.showNotification('Tu conduis. ZQSD pour rouler, E pour sortir.');
+  }
+
+  exitVehicle() {
+    this.mode = 'foot';
+    this.vehicle.speed = 0;
+    this.audio.stopEngine();
+    this.vehicle.setRingVisible(true);
+    this.vehicle.setHeadlights(false);
+    this.hud.hideSpeed();
+
+    // Drop the player beside the car (left side of its heading)
+    const sideX = Math.cos(this.vehicle.heading);
+    const sideZ = -Math.sin(this.vehicle.heading);
+    this.player.position.set(
+      this.vehicle.position.x + sideX * 2.2,
+      0,
+      this.vehicle.position.z + sideZ * 2.2
+    );
+    this.player.yaw = this.vehicle.heading + Math.PI; // camera behind player
+    this.player.group.visible = true;
+    this.player.group.position.copy(this.player.position);
+    this.save.save();
+  }
+
+  updateDriveCamera() {
+    const v = this.vehicle;
+    const back = 8.5;
+    const height = 4.2;
+    const desired = new THREE.Vector3(
+      v.position.x - Math.sin(v.heading) * back,
+      v.position.y + height,
+      v.position.z - Math.cos(v.heading) * back
+    );
+    this.camera.position.lerp(desired, 0.12);
+    this.camera.lookAt(v.position.x, v.position.y + 1.2, v.position.z);
+  }
+
   handleInteractions() {
     const playerPos = this.player.position;
     const eDown = this.player.keys['KeyE'];
     const ePressed = eDown && !this.eKeyWasDown;
     this.eKeyWasDown = eDown;
 
+    // Driving: only option is to step out
+    if (this.mode === 'drive') {
+      this.hud.showInteractPrompt('Appuie sur E pour sortir du vehicule');
+      if (ePressed) this.exitVehicle();
+      return;
+    }
+
     // Don't process world interactions while a dialog, shop or inventory is open
     if (this.hud.isDialogOpen() || this.shop.isOpen || this.inventoryUI.isOpen) {
       this.hud.hideInteractPrompt();
+      return;
+    }
+
+    // Enter the vehicle when on foot nearby
+    if (distance2D(playerPos, this.vehicle.position) <= 3.6) {
+      this.hud.showInteractPrompt('Appuie sur E pour conduire');
+      if (ePressed) this.enterVehicle();
       return;
     }
 
@@ -450,7 +513,17 @@ export default class Game {
     const delta = Math.min(this.clock.getDelta(), 0.1);
     const time = this.clock.elapsedTime;
 
-    this.player.update(delta, time);
+    if (this.mode === 'drive') {
+      this.vehicle.update(delta, this.player.keys, this.city.obstacles);
+      this.player.position.copy(this.vehicle.position);
+      this.player.group.position.copy(this.vehicle.position);
+      this.updateDriveCamera();
+      this.audio.setEngineRpm(Math.abs(this.vehicle.speed) / this.vehicle.maxSpeed);
+      this.hud.showSpeed(this.vehicle.kmh);
+    } else {
+      this.player.update(delta, time);
+    }
+
     for (const npc of this.npcs) npc.update(this.player.position, delta, time);
     this.city.update(time);
     this.dayNight.update(delta);

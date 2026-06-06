@@ -16,6 +16,7 @@ export default class SaveSystem {
       pos: { x: g.player.position.x, z: g.player.position.z },
       yaw: g.player.yaw,
       dayTime: g.dayNight ? g.dayNight.time : undefined,
+      vehicle: g.vehicle ? { x: g.vehicle.position.x, z: g.vehicle.position.z, heading: g.vehicle.heading } : undefined,
     };
     try {
       localStorage.setItem(SAVE_KEY, JSON.stringify(data));
@@ -41,7 +42,13 @@ export default class SaveSystem {
       if (data.pos) g.player.position.set(data.pos.x, 0, data.pos.z);
       if (typeof data.yaw === 'number') g.player.yaw = data.yaw;
       if (typeof data.dayTime === 'number' && g.dayNight) g.dayNight.time = data.dayTime;
+      if (data.vehicle && g.vehicle) {
+        g.vehicle.position.set(data.vehicle.x, 0, data.vehicle.z);
+        g.vehicle.heading = data.vehicle.heading;
+        g.vehicle.syncTransform();
+      }
       return true;
+
     } catch (e) {
       return false;
     }

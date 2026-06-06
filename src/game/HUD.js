@@ -36,6 +36,16 @@ export default class HUD {
     el.textContent = `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
   }
 
+  showSpeed(kmh) {
+    const el = document.getElementById('hud-vehicle');
+    el.classList.remove('hidden');
+    document.getElementById('speed-value').textContent = kmh;
+  }
+
+  hideSpeed() {
+    document.getElementById('hud-vehicle').classList.add('hidden');
+  }
+
   updateWeather(state) {
     const el = document.getElementById('location-weather');
     if (!el) return;

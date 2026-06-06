@@ -132,6 +132,36 @@ export default class AudioSystem {
     }
   }
 
+  // Engine drone whose pitch follows the car speed
+  startEngine() {
+    if (!this.ctx || this.engineNode) return;
+    const osc = this.ctx.createOscillator();
+    osc.type = 'sawtooth';
+    osc.frequency.value = 55;
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 600;
+    const g = this.ctx.createGain();
+    g.gain.setValueAtTime(0, this.ctx.currentTime);
+    g.gain.linearRampToValueAtTime(0.09, this.ctx.currentTime + 0.3);
+    osc.connect(filter).connect(g).connect(this.master);
+    osc.start();
+    this.engineNode = { osc, gain: g };
+  }
+
+  setEngineRpm(speed01) {
+    if (!this.engineNode) return;
+    this.engineNode.osc.frequency.value = 55 + speed01 * 130;
+  }
+
+  stopEngine() {
+    if (!this.engineNode) return;
+    const { osc, gain } = this.engineNode;
+    gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 0.3);
+    setTimeout(() => { try { osc.stop(); } catch (e) {} }, 400);
+    this.engineNode = null;
+  }
+
   toggle() {
     this.enabled = !this.enabled;
     if (this.master) this.master.gain.value = this.enabled ? 0.5 : 0;
