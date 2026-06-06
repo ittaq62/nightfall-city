@@ -24,6 +24,21 @@ npm run build
 npm run preview
 ```
 
+### 🌐 Multijoueur (optionnel)
+
+Le jeu fonctionne seul avec `npm run dev` (d'autres « joueurs » sont alors **simulés**
+localement). Pour du **vrai multijoueur en réseau**, lance le serveur dans un second
+terminal :
+
+```bash
+npm run server     # serveur WebSocket sur ws://localhost:8080
+npm run dev        # le jeu, dans un autre terminal
+```
+
+Ouvre plusieurs onglets / machines (sur le même réseau) : les joueurs se voient,
+bougent et tchattent en temps réel. Si le serveur n'est pas lancé, le jeu bascule
+automatiquement sur les joueurs simulés.
+
 ---
 
 ## 🎮 Contrôles
@@ -37,6 +52,7 @@ npm run preview
 | `Shift` | Courir |
 | Souris | Tourner la caméra |
 | `E` | Interagir (parler / livrer / magasin / banque / voiture) |
+| `Entrée` | Ouvrir le chat / envoyer un message |
 | `1` à `5` | Utiliser l'objet du slot correspondant |
 | `I` | Ouvrir / fermer l'inventaire détaillé |
 | `M` | Afficher / cacher la mini-carte |
@@ -53,6 +69,8 @@ npm run preview
 nightfall-city/
 ├── index.html              # Structure HTML + tout le HUD (overlay)
 ├── package.json
+├── server/
+│   └── index.js            # Serveur multijoueur WebSocket (Node)
 ├── src/
 │   ├── main.js             # Point d'entrée : démarre le jeu
 │   ├── style.css           # Style du HUD (sombre, moderne)
@@ -65,6 +83,7 @@ nightfall-city/
 │   │   ├── Vehicle.js          # Voiture conduisible (physique arcade)
 │   │   ├── TrafficSystem.js    # Circulation IA + feux de circulation
 │   │   ├── OnlinePlayers.js    # Joueurs en ligne simulés (local)
+│   │   ├── Network.js          # Client multijoueur WebSocket
 │   │   ├── Textures.js         # Textures procédurales (canvas)
 │   │   ├── MissionSystem.js    # Missions multiples, réputation, métiers
 │   │   ├── InventorySystem.js  # Registre d'objets + slots du HUD
@@ -99,8 +118,9 @@ nightfall-city/
   compteur de vitesse + son moteur, `E` pour sortir.
 - **Circulation IA & feux** : des voitures roulent en continu sur les routes, **s'arrêtent
   aux feux rouges** à l'intersection, et ralentissent si tu leur coupes la route.
-- **Joueurs en ligne simulés** : d'autres « joueurs » nommés circulent en ville, tchattent
-  en RP et apparaissent sur la mini-carte — ambiance serveur peuplé, **sans backend**.
+- **Multijoueur en réseau** (avec `npm run server`) : les vrais joueurs connectés se voient,
+  bougent et tchattent en temps réel (WebSocket). **Repli automatique** sur des joueurs
+  simulés si aucun serveur n'est lancé. Chat interactif (touche `Entrée`).
 - **Banque & loyer** : entre dans la *Banque de Nightfall* (`E`) pour déposer/retirer
   ton argent ; un **loyer** est prélevé chaque matin (sur le liquide puis l'épargne).
 - **Textures procédurales** : bitume, béton, sol et **façades d'immeubles avec fenêtres
@@ -137,9 +157,9 @@ nightfall-city/
 
 - Modèles GLTF importés (vrais personnages riggés).
 - Virages de l'IA aux intersections.
-- Vrai multijoueur en réseau (WebSocket + petit backend Node) — sortirait du
-  périmètre « tout en local » de cette V1.
+- Synchroniser les véhicules et l'état du monde en multijoueur.
+- Salles / serveurs nommés + persistance côté serveur.
 
 ---
 
-*Prototype — version 0.5.0*
+*Prototype — version 0.6.0*
