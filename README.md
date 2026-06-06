@@ -36,7 +36,7 @@ npm run preview
 | `D` | Aller à droite |
 | `Shift` | Courir |
 | Souris | Tourner la caméra |
-| `E` | Interagir (parler / livrer / magasin / monter en voiture / sortir) |
+| `E` | Interagir (parler / livrer / magasin / banque / voiture) |
 | `1` à `5` | Utiliser l'objet du slot correspondant |
 | `I` | Ouvrir / fermer l'inventaire détaillé |
 | `M` | Afficher / cacher la mini-carte |
@@ -63,10 +63,13 @@ nightfall-city/
 │   │   ├── CityBuilder.js      # Construction de la ville (immeubles, rues, néons)
 │   │   ├── NPC.js              # PNJ (Tony, Maria, Vince) + proximité
 │   │   ├── Vehicle.js          # Voiture conduisible (physique arcade)
+│   │   ├── TrafficSystem.js    # Circulation IA sur les routes
+│   │   ├── Textures.js         # Textures procédurales (canvas)
 │   │   ├── MissionSystem.js    # Missions multiples, réputation, métiers
 │   │   ├── InventorySystem.js  # Registre d'objets + slots du HUD
 │   │   ├── InventoryUI.js      # Panneau d'inventaire détaillé (I)
 │   │   ├── ShopSystem.js       # Magasin 24/7 fonctionnel
+│   │   ├── BankSystem.js       # Banque (dépôt / retrait)
 │   │   ├── DayNightCycle.js    # Cycle jour/nuit + horloge
 │   │   ├── WeatherSystem.js    # Pluie / brouillard dynamiques
 │   │   ├── AudioSystem.js      # Sons synthétisés (Web Audio)
@@ -93,6 +96,12 @@ nightfall-city/
 - **Voiture conduisible** : approche la voiture (cercle bleu), `E` pour monter, conduis
   avec ZQSD (physique arcade : accélération, direction, freinage, collisions),
   compteur de vitesse + son moteur, `E` pour sortir.
+- **Circulation IA** : des voitures roulent en continu sur les routes (visibles aussi
+  sur la mini-carte) et ralentissent si tu leur coupes la route.
+- **Banque & loyer** : entre dans la *Banque de Nightfall* (`E`) pour déposer/retirer
+  ton argent ; un **loyer** est prélevé chaque matin (sur le liquide puis l'épargne).
+- **Textures procédurales** : bitume, béton et sol générés au canvas (sans fichier image)
+  pour un rendu plus riche.
 - **Boucle de vie (type Sims)** :
   - **Magasin 24/7 fonctionnel** : entre dans le *24/7 City Mart* (`E`), achète
     burger, sandwich, eau, café, savon avec ton argent.
@@ -123,11 +132,11 @@ nightfall-city/
 
 ## 🔭 Prochaines améliorations possibles
 
-- Modèles GLTF importés + textures.
-- Plusieurs véhicules + circulation IA.
-- Système d'argent avancé (banque, loyers).
-- Multijoueur léger (WebSocket) pour le RP.
+- Modèles GLTF importés + textures haute qualité.
+- Feux de circulation et virages pour l'IA.
+- Plus de métiers et d'activités économiques.
+- Multijoueur léger (WebSocket) — nécessiterait un petit backend (hors périmètre V1).
 
 ---
 
-*Prototype — version 0.3.0*
+*Prototype — version 0.4.0*
