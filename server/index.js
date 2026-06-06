@@ -32,8 +32,8 @@ wss.on('connection', (ws) => {
       ws.send(JSON.stringify({ t: 'welcome', id, players }));
       broadcast({ t: 'join', id, name: state.name, x: state.x, z: state.z, heading: state.heading }, ws);
     } else if (m.t === 'pos') {
-      state.x = m.x; state.z = m.z; state.heading = m.heading; state.moving = !!m.moving;
-      broadcast({ t: 'pos', id, x: m.x, z: m.z, heading: m.heading, moving: state.moving }, ws);
+      state.x = m.x; state.z = m.z; state.heading = m.heading; state.moving = !!m.moving; state.car = !!m.car;
+      broadcast({ t: 'pos', id, x: m.x, z: m.z, heading: m.heading, moving: state.moving, car: state.car }, ws);
     } else if (m.t === 'chat') {
       broadcast({ t: 'chat', id, name: state.name, text: String(m.text).slice(0, 120) }, null);
     }
