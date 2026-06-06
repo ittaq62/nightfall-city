@@ -403,6 +403,17 @@ body {
   border-radius: 5px;
   letter-spacing: 0.05em;
 }
+.minimap-weather {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #cdd6ff;
+  background: rgba(0,0,0,0.5);
+  padding: 2px 7px;
+  border-radius: 5px;
+}
 
 /* Quick inventory */
 #hud-inventory {

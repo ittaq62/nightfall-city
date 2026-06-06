@@ -109,6 +109,29 @@ export default class AudioSystem {
     src.stop(t + 0.06);
   }
 
+  // Continuous rain hiss, faded in/out
+  setRain(on) {
+    if (!this.ctx) return;
+    if (on && !this.rainNode) {
+      const noise = this.makeNoise(2);
+      noise.loop = true;
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'highpass';
+      filter.frequency.value = 900;
+      const g = this.ctx.createGain();
+      g.gain.setValueAtTime(0, this.ctx.currentTime);
+      g.gain.linearRampToValueAtTime(0.07, this.ctx.currentTime + 1.5);
+      noise.connect(filter).connect(g).connect(this.master);
+      noise.start();
+      this.rainNode = { noise, gain: g };
+    } else if (!on && this.rainNode) {
+      const { noise, gain } = this.rainNode;
+      gain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 1);
+      setTimeout(() => { try { noise.stop(); } catch (e) {} }, 1200);
+      this.rainNode = null;
+    }
+  }
+
   toggle() {
     this.enabled = !this.enabled;
     if (this.master) this.master.gain.value = this.enabled ? 0.5 : 0;

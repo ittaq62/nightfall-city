@@ -9,6 +9,7 @@ import ShopSystem from './ShopSystem.js';
 import AudioSystem from './AudioSystem.js';
 import SaveSystem from './SaveSystem.js';
 import DayNightCycle from './DayNightCycle.js';
+import WeatherSystem from './WeatherSystem.js';
 import { distance2D, clamp } from './Utils.js';
 
 export default class Game {
@@ -127,6 +128,15 @@ export default class Game {
       hemi: this.hemi,
       nightLights: this.city.nightLights,
       hud: this.hud,
+    });
+
+    // Weather (rain / fog) - baseFog matches the FogExp2 density set in initScene
+    this.weather = new WeatherSystem({
+      scene: this.scene,
+      player: this.player,
+      audio: this.audio,
+      hud: this.hud,
+      baseFog: 0.009,
     });
 
     // Save / load progress
@@ -434,6 +444,7 @@ export default class Game {
     for (const npc of this.npcs) npc.update(this.player.position, delta, time);
     this.city.update(time);
     this.dayNight.update(delta);
+    this.weather.update(delta);
 
     this.handleInteractions();
     this.updateNeeds(delta);

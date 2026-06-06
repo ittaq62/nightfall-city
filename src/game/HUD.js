@@ -36,6 +36,15 @@ export default class HUD {
     el.textContent = `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
   }
 
+  updateWeather(state) {
+    const el = document.getElementById('location-weather');
+    if (!el) return;
+    el.textContent =
+      state === 'rain' ? '🌧️ Pluie' :
+      state === 'fog' ? '🌫️ Brouillard' :
+      '✦ Clair';
+  }
+
   showInteractPrompt(text) {
     const el = document.getElementById('hud-interact');
     document.getElementById('interact-text').textContent = text;
