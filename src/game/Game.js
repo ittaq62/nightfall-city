@@ -3,6 +3,7 @@ import PlayerController from './PlayerController.js';
 import CityBuilder from './CityBuilder.js';
 import NPC from './NPC.js';
 import Vehicle from './Vehicle.js';
+import TrafficSystem from './TrafficSystem.js';
 import HUD from './HUD.js';
 import InventorySystem from './InventorySystem.js';
 import MissionSystem from './MissionSystem.js';
@@ -121,6 +122,9 @@ export default class Game {
     // Drivable vehicle, parked on the road near the spawn
     this.vehicle = new Vehicle(this.scene, new THREE.Vector3(6, 0, 5), Math.PI, 0x991f2a);
     this.mode = 'foot'; // 'foot' | 'drive'
+
+    // AI traffic cruising the main roads
+    this.traffic = new TrafficSystem({ scene: this.scene, player: this.player });
 
     this.mission = new MissionSystem(this.playerState, this.inventory, this.hud, this.audio);
     this.shop = new ShopSystem(this.playerState, this.inventory, this.hud, this.audio);
@@ -461,6 +465,22 @@ export default class Game {
       ctx.fillRect(ox - w / 2, oz - d / 2, w, d);
     }
 
+    // Traffic cars
+    ctx.fillStyle = '#9aa0aa';
+    for (const c of this.traffic.cars) {
+      const cx2 = (c.group.position.x - px) * scale;
+      const cz2 = (c.group.position.z - pz) * scale;
+      ctx.fillRect(cx2 - 1.5, cz2 - 1.5, 3, 3);
+    }
+
+    // Player's drivable car
+    {
+      const vx = (this.vehicle.position.x - px) * scale;
+      const vz = (this.vehicle.position.z - pz) * scale;
+      ctx.fillStyle = '#ff5555';
+      ctx.fillRect(vx - 2, vz - 2, 4, 4);
+    }
+
     // NPC markers (highlight those awaiting a delivery)
     for (const npc of this.npcs) {
       const nx = (npc.position.x - px) * scale;
@@ -525,6 +545,7 @@ export default class Game {
     }
 
     for (const npc of this.npcs) npc.update(this.player.position, delta, time);
+    this.traffic.update(delta);
     this.city.update(time);
     this.dayNight.update(delta);
     this.weather.update(delta);
