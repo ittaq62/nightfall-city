@@ -5,6 +5,12 @@ export default class AudioSystem {
     this.ctx = null;
     this.master = null;
     this.enabled = true;
+    this.volume = 0.5;
+  }
+
+  setVolume(v01) {
+    this.volume = Math.max(0, Math.min(1, v01));
+    if (this.master && this.enabled) this.master.gain.value = this.volume;
   }
 
   // Must be called from a user gesture (e.g. the start-overlay click).
@@ -17,7 +23,7 @@ export default class AudioSystem {
     if (!AC) return;
     this.ctx = new AC();
     this.master = this.ctx.createGain();
-    this.master.gain.value = 0.5;
+    this.master.gain.value = this.enabled ? this.volume : 0;
     this.master.connect(this.ctx.destination);
     this.startAmbient();
   }
@@ -164,7 +170,7 @@ export default class AudioSystem {
 
   toggle() {
     this.enabled = !this.enabled;
-    if (this.master) this.master.gain.value = this.enabled ? 0.5 : 0;
+    if (this.master) this.master.gain.value = this.enabled ? this.volume : 0;
     return this.enabled;
   }
 }

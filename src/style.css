@@ -53,6 +53,23 @@ body {
   color: #aaa;
   animation: pulse 2s ease-in-out infinite;
 }
+#name-input {
+  display: block;
+  margin: 8px auto 0;
+  width: 260px;
+  max-width: 80vw;
+  text-align: center;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(245,166,35,0.4);
+  border-radius: 6px;
+  padding: 10px 14px;
+  color: #fff;
+  font-size: 1rem;
+  font-family: inherit;
+  outline: none;
+}
+#name-input:focus { border-color: #f5a623; }
+
 #btn-newgame {
   margin-top: 24px;
   padding: 8px 22px;
@@ -710,6 +727,65 @@ body {
   backdrop-filter: blur(10px);
 }
 #btn-mute:hover { border-color: rgba(245,166,35,0.5); }
+
+/* Pause menu */
+#hud-pause {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  backdrop-filter: blur(4px);
+}
+.pause-box {
+  background: rgba(12,12,18,0.95);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 12px;
+  padding: 30px 36px;
+  text-align: center;
+  width: 360px;
+  max-width: 90vw;
+}
+.pause-box h2 {
+  font-size: 2rem;
+  font-weight: 900;
+  letter-spacing: 0.2em;
+  color: #f5a623;
+  margin-bottom: 20px;
+}
+.pause-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+  color: #ccc;
+}
+.pause-row input[type="range"] { flex: 1; accent-color: #f5a623; }
+.pause-controls {
+  font-size: 0.78rem;
+  color: #888;
+  line-height: 1.7;
+  margin-bottom: 22px;
+}
+.pause-box button {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 11px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+#pause-resume { background: #f5a623; color: #000; }
+#pause-resume:hover { background: #ffb84d; }
+#pause-newgame { background: rgba(255,255,255,0.1); color: #fff; }
+#pause-newgame:hover { background: rgba(255,255,255,0.18); }
 
 /* Controls help */
 #hud-controls {

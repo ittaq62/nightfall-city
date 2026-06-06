@@ -8,11 +8,21 @@ game.start();
 // Expose for debugging in the console (handy during prototyping)
 window.game = game;
 
-// Start overlay -> click to capture pointer, start audio, and begin
+// Prefill the name field with the saved/default player name
+const nameInput = document.getElementById('name-input');
+if (nameInput) {
+  nameInput.value = game.playerState.name;
+  // Clicking/typing in the field must not start the game
+  nameInput.addEventListener('click', (e) => e.stopPropagation());
+  nameInput.addEventListener('keydown', (e) => e.stopPropagation());
+}
+
+// Start overlay -> click to capture pointer, start audio, choose name, go online
 const overlay = document.getElementById('start-overlay');
 overlay.addEventListener('click', () => {
   overlay.classList.add('hidden');
   game.audio.init(); // user gesture required to start the Web Audio context
+  game.beginSession(nameInput ? nameInput.value : '');
   canvas.requestPointerLock();
 });
 

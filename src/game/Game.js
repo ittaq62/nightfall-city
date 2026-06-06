@@ -150,7 +150,7 @@ export default class Game {
       this.hud.addChatMessage('Systeme', 'Mode hors-ligne (joueurs simules)', 'online');
       this.updateGlobalCount();
     };
-    this.network.connect();
+    // network.connect() is deferred to beginSession() (after the name is chosen)
     this.updateGlobalCount();
 
     this.mission = new MissionSystem(this.playerState, this.inventory, this.hud, this.audio);
@@ -221,9 +221,10 @@ export default class Game {
       // While typing in the chat, let the input handle keys (no game shortcuts)
       if (document.activeElement === chatInput) return;
 
-      // Escape releases pointer
+      // Escape releases pointer and toggles the pause menu
       if (e.code === 'Escape') {
         document.exitPointerLock();
+        this.togglePause();
       }
       // Enter opens the chat
       if (e.code === 'Enter') {
@@ -260,6 +261,17 @@ export default class Game {
         const on = this.audio.toggle();
         muteBtn.textContent = on ? '🔊' : '🔇';
       };
+    }
+
+    // Pause menu buttons
+    const resumeBtn = document.getElementById('pause-resume');
+    if (resumeBtn) resumeBtn.onclick = () => this.setPaused(false);
+    const pauseNewGame = document.getElementById('pause-newgame');
+    if (pauseNewGame) pauseNewGame.onclick = () => this.resetGame();
+    const volSlider = document.getElementById('vol-slider');
+    if (volSlider) {
+      volSlider.value = String(Math.round(this.audio.volume * 100));
+      volSlider.addEventListener('input', () => this.audio.setVolume(volSlider.value / 100));
     }
 
     // Chat input
@@ -307,10 +319,31 @@ export default class Game {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
   }
 
+  setPaused(p) {
+    this.paused = p;
+    document.getElementById('hud-pause').classList.toggle('hidden', !p);
+  }
+
+  togglePause() {
+    this.setPaused(!this.paused);
+  }
+
   updateGlobalCount() {
     const n = this.networked ? (this.network.remotes.size + 1) : (this.online.players.length + 1);
     const tab = document.getElementById('chat-global-tab');
     if (tab) tab.textContent = `GLOBAL ● ${n}`;
+  }
+
+  // Called when the player clicks "play" - applies the chosen name and goes online
+  beginSession(name) {
+    const clean = (name || '').trim().slice(0, 16);
+    if (clean) {
+      this.playerState.name = clean;
+      this.hud.updatePlayerInfo(this.playerState);
+      this.save.save();
+    }
+    this.network.name = this.playerState.name;
+    this.network.connect();
   }
 
   sendChat(text) {
@@ -667,6 +700,12 @@ export default class Game {
     const delta = Math.min(this.clock.getDelta(), 0.1);
     const time = this.clock.elapsedTime;
 
+    // When paused, keep rendering but freeze all world updates
+    if (this.paused) {
+      this.renderer.render(this.scene, this.camera);
+      return;
+    }
+
     if (this.mode === 'drive') {
       this.vehicle.update(delta, this.player.keys, this.city.obstacles);
       this.player.position.copy(this.vehicle.position);
@@ -687,8 +726,9 @@ export default class Game {
     this.network.update(delta, {
       x: this.player.position.x,
       z: this.player.position.z,
-      heading: this.player.group.rotation.y,
+      heading: this.mode === 'drive' ? this.vehicle.heading : this.player.group.rotation.y,
       moving: localMoving,
+      inCar: this.mode === 'drive',
     });
     if (this.networked) this.updateGlobalCount();
     this.city.update(time);

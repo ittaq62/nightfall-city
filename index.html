@@ -14,6 +14,7 @@
     <div id="start-overlay">
       <div class="start-content">
         <h1>NIGHTFALL CITY</h1>
+        <input id="name-input" maxlength="16" placeholder="Ton nom" value="Alex Mercer" />
         <p>Cliquez pour jouer</p>
         <button id="btn-newgame">Nouvelle partie</button>
       </div>
@@ -177,6 +178,23 @@
 
     <!-- HUD: Sound toggle -->
     <button id="btn-mute" title="Activer / couper le son">🔊</button>
+
+    <!-- HUD: Pause menu -->
+    <div id="hud-pause" class="hidden">
+      <div class="pause-box">
+        <h2>PAUSE</h2>
+        <div class="pause-row">
+          <span>Volume</span>
+          <input type="range" id="vol-slider" min="0" max="100" value="50" />
+        </div>
+        <div class="pause-controls">
+          ZQSD / WASD : bouger &nbsp;·&nbsp; Shift : courir &nbsp;·&nbsp; E : interagir<br>
+          I : inventaire &nbsp;·&nbsp; M : carte &nbsp;·&nbsp; Entree : chat &nbsp;·&nbsp; Echap : pause
+        </div>
+        <button id="pause-resume">Reprendre</button>
+        <button id="pause-newgame">Nouvelle partie</button>
+      </div>
+    </div>
 
     <!-- HUD: Controls help -->
     <div id="hud-controls" class="hidden">
