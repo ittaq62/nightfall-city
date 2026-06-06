@@ -6,6 +6,7 @@ import HUD from './HUD.js';
 import InventorySystem from './InventorySystem.js';
 import MissionSystem from './MissionSystem.js';
 import ShopSystem from './ShopSystem.js';
+import InventoryUI from './InventoryUI.js';
 import AudioSystem from './AudioSystem.js';
 import SaveSystem from './SaveSystem.js';
 import DayNightCycle from './DayNightCycle.js';
@@ -120,6 +121,10 @@ export default class Game {
     this.shop = new ShopSystem(this.playerState, this.inventory, this.hud, this.audio);
     this.shop.onClose = () => { this.player.inputBlocked = false; };
 
+    // Detailed inventory panel (I)
+    this.inventoryUI = new InventoryUI(this.inventory, (i) => this.useSlot(i, true));
+    this.inventoryUI.onClose = () => { this.player.inputBlocked = false; };
+
     // Day / night cycle
     this.dayNight = new DayNightCycle({
       scene: this.scene,
@@ -182,6 +187,11 @@ export default class Game {
       if (e.code === 'KeyM') {
         document.getElementById('hud-minimap').classList.toggle('hidden');
       }
+      // Toggle inventory panel
+      if (e.code === 'KeyI') {
+        this.inventoryUI.toggle();
+        this.player.inputBlocked = this.inventoryUI.isOpen;
+      }
       // Use inventory item with number keys 1-5
       if (e.code.startsWith('Digit') && !e.repeat) {
         const n = parseInt(e.code.slice(5), 10);
@@ -199,9 +209,9 @@ export default class Game {
     }
   }
 
-  useSlot(index) {
+  useSlot(index, fromPanel = false) {
     if (this.hud.isDialogOpen() || this.shop.isOpen) return;
-    if (this.inventoryOpen) return;
+    if (!fromPanel && this.inventoryUI.isOpen) return;
     const result = this.inventory.consumeSlot(index);
     if (!result) return; // empty slot
     if (!result.consumed) {
@@ -241,7 +251,7 @@ export default class Game {
     this.eKeyWasDown = eDown;
 
     // Don't process world interactions while a dialog, shop or inventory is open
-    if (this.hud.isDialogOpen() || this.shop.isOpen || this.inventoryOpen) {
+    if (this.hud.isDialogOpen() || this.shop.isOpen || this.inventoryUI.isOpen) {
       this.hud.hideInteractPrompt();
       return;
     }
