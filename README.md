@@ -38,6 +38,7 @@ npm run preview
 | Souris | Tourner la caméra |
 | `E` | Interagir (parler / livrer / entrer dans le magasin) |
 | `1` à `5` | Utiliser l'objet du slot correspondant |
+| `I` | Ouvrir / fermer l'inventaire détaillé |
 | `M` | Afficher / cacher la mini-carte |
 | `H` | Afficher / cacher l'aide |
 | `Échap` | Libérer la souris |
@@ -58,10 +59,17 @@ nightfall-city/
 │   ├── game/
 │   │   ├── Game.js             # Scène, caméra, renderer, boucle, minimap
 │   │   ├── PlayerController.js  # Déplacement, caméra 3e personne, collisions
+│   │   ├── CharacterModel.js   # Humanoïde articulé + animation de marche
 │   │   ├── CityBuilder.js      # Construction de la ville (immeubles, rues, néons)
-│   │   ├── NPC.js              # PNJ Tony + détection de proximité
-│   │   ├── MissionSystem.js    # États de la mission + récompenses
-│   │   ├── InventorySystem.js  # Objets + slots du HUD
+│   │   ├── NPC.js              # PNJ (Tony, Maria, Vince) + proximité
+│   │   ├── MissionSystem.js    # Missions multiples, réputation, métiers
+│   │   ├── InventorySystem.js  # Registre d'objets + slots du HUD
+│   │   ├── InventoryUI.js      # Panneau d'inventaire détaillé (I)
+│   │   ├── ShopSystem.js       # Magasin 24/7 fonctionnel
+│   │   ├── DayNightCycle.js    # Cycle jour/nuit + horloge
+│   │   ├── WeatherSystem.js    # Pluie / brouillard dynamiques
+│   │   ├── AudioSystem.js      # Sons synthétisés (Web Audio)
+│   │   ├── SaveSystem.js       # Sauvegarde localStorage
 │   │   ├── HUD.js             # Lien entre l'état du jeu et l'interface
 │   │   └── Utils.js           # distance2D, clamp, collisions, text sprites
 │   └── assets/
@@ -70,16 +78,17 @@ nightfall-city/
 
 ---
 
-## ✅ Ce qui fonctionne (V1)
+## ✅ Ce qui fonctionne
 
-- **Personnage 3D contrôlable** vu de dos, caméra orbitale derrière lui.
+- **Personnages 3D articulés** (joueur + PNJ) avec animation de marche, vus de dos,
+  caméra orbitale en troisième personne.
 - **Déplacement fluide** ZQSD / WASD + course (Shift).
 - **Ville de nuit** : rue principale, trottoirs, immeubles, magasin *24/7 City Mart*,
   *Sunset Apartments*, lampadaires, voitures, poubelles, néons.
 - **Collisions** simples (Box3) : on ne traverse pas les bâtiments ni les limites de la map.
-- **PNJ Tony** : approche → label + prompt « Appuie sur E pour parler ».
-- **Mission complète** : parler à Tony → recevoir le colis → le livrer au dépôt central
-  → **+150 $ / +10 réputation** + notification.
+- **Missions multiples & PNJ** : Tony, Maria et Vince donnent chacun une mission
+  (livraison au dépôt, courses à rapporter…). La **réputation** débloque de nouvelles
+  missions et fait évoluer ton **métier** (Citoyen → Coursier → Livreur → Livreur Pro).
 - **Boucle de vie (type Sims)** :
   - **Magasin 24/7 fonctionnel** : entre dans le *24/7 City Mart* (`E`), achète
     burger, sandwich, eau, café, savon avec ton argent.
@@ -94,20 +103,27 @@ nightfall-city/
   mission et position sont conservés au rechargement. Bouton *Nouvelle partie* pour repartir.
 - **Sons synthétisés** (Web Audio, aucun fichier externe) : ambiance nocturne, pas,
   clics d'interface, jingle de mission. Bouton 🔊 pour couper/activer le son.
+- **Inventaire détaillé** (`I`) : panneau avec icône, nom, description et bouton
+  *Utiliser* pour chaque objet, en plus de la barre rapide.
 - **Cycle jour/nuit dynamique** : le ciel, le brouillard, la lumière du soleil/lune et
   l'ambiance évoluent en continu ; les lampadaires et néons s'allument à la tombée de la
   nuit. Horloge affichée sous la mini-carte (le jeu démarre à 21:00).
+- **Météo dynamique** : alternance clair / brouillard / pluie (particules + son de pluie),
+  avec densité de brouillard variable. Indicateur météo sur la mini-carte.
+- **Sauvegarde automatique** (localStorage) : argent, réputation, besoins, inventaire,
+  missions, position et heure sont conservés. Bouton *Nouvelle partie* pour repartir.
+- **Sons synthétisés** (Web Audio, aucun fichier externe) : ambiance nocturne, pas,
+  pluie, clics, jingle de mission. Bouton 🔊 pour couper/activer le son.
 
 ---
 
 ## 🔭 Prochaines améliorations possibles
 
-- Plusieurs PNJ et missions enchaînées.
-- Modèles 3D (GLTF) à la place des capsules.
-- Panneau d'inventaire détaillé (touche `I`).
-- Météo (pluie, brouillard variable).
+- Modèles GLTF importés + textures.
+- Conduite des véhicules.
+- Système d'argent avancé (banque, loyers).
 - Multijoueur léger (WebSocket) pour le RP.
 
 ---
 
-*Prototype — version 0.1.0*
+*Prototype — version 0.2.0*
