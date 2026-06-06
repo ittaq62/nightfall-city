@@ -11,12 +11,13 @@ const DAY_SUN = new THREE.Color(0xfff2d6);    // warm white
 const TWILIGHT_SUN = new THREE.Color(0xff8844);
 
 export default class DayNightCycle {
-  constructor({ scene, sun, ambient, hemi, nightLights = [], hud }) {
+  constructor({ scene, sun, ambient, hemi, nightLights = [], facadeMaterials = [], hud }) {
     this.scene = scene;
     this.sun = sun;
     this.ambient = ambient;
     this.hemi = hemi;
     this.nightLights = nightLights;
+    this.facadeMaterials = facadeMaterials;
     this.hud = hud;
 
     this.dayLength = 240; // seconds for a full 24h cycle
@@ -61,6 +62,12 @@ export default class DayNightCycle {
     const artificial = 0.15 + (1 - daylight) * 0.85;
     for (const nl of this.nightLights) {
       nl.light.intensity = nl.base * artificial;
+    }
+
+    // Building windows: bright at night, dim by day
+    const winGlow = 0.25 + (1 - daylight) * 0.85;
+    for (const m of this.facadeMaterials) {
+      m.emissiveIntensity = winGlow;
     }
 
     if (this.hud) this.hud.updateClock(h);

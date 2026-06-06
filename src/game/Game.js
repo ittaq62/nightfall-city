@@ -172,6 +172,7 @@ export default class Game {
       ambient: this.ambient,
       hemi: this.hemi,
       nightLights: this.city.nightLights,
+      facadeMaterials: this.city.facadeMaterials,
       hud: this.hud,
     });
 
@@ -254,9 +255,10 @@ export default class Game {
       }
     });
 
-    // Mute / unmute button
+    // Mute / unmute button (reflects the restored setting)
     const muteBtn = document.getElementById('btn-mute');
     if (muteBtn) {
+      muteBtn.textContent = this.audio.enabled ? '🔊' : '🔇';
       muteBtn.onclick = () => {
         const on = this.audio.toggle();
         muteBtn.textContent = on ? '🔊' : '🔇';

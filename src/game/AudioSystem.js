@@ -6,11 +6,24 @@ export default class AudioSystem {
     this.master = null;
     this.enabled = true;
     this.volume = 0.5;
+    // Restore saved audio settings
+    try {
+      const s = JSON.parse(localStorage.getItem('nightfall-audio') || '{}');
+      if (typeof s.volume === 'number') this.volume = s.volume;
+      if (typeof s.enabled === 'boolean') this.enabled = s.enabled;
+    } catch (e) { /* ignore */ }
+  }
+
+  _saveSettings() {
+    try {
+      localStorage.setItem('nightfall-audio', JSON.stringify({ volume: this.volume, enabled: this.enabled }));
+    } catch (e) { /* ignore */ }
   }
 
   setVolume(v01) {
     this.volume = Math.max(0, Math.min(1, v01));
     if (this.master && this.enabled) this.master.gain.value = this.volume;
+    this._saveSettings();
   }
 
   // Must be called from a user gesture (e.g. the start-overlay click).
@@ -171,6 +184,7 @@ export default class AudioSystem {
   toggle() {
     this.enabled = !this.enabled;
     if (this.master) this.master.gain.value = this.enabled ? this.volume : 0;
+    this._saveSettings();
     return this.enabled;
   }
 }

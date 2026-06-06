@@ -8,6 +8,7 @@ export default class CityBuilder {
     this.obstacles = []; // Array of THREE.Box3
     this.minimapObjects = []; // For minimap rendering: {x, z, w, d, color}
     this.nightLights = []; // Lights that turn on at night: {light, base}
+    this.facadeMaterials = []; // Building window materials, dimmed during the day
     this.deliveryZone = null;
   }
 
@@ -117,7 +118,9 @@ export default class CityBuilder {
     });
     const roofMat = new THREE.MeshStandardMaterial({ color: 0x101016, roughness: 0.95 });
     // BoxGeometry face order: +x, -x, +y, -y, +z, -z
-    const mats = [facadeMat(fx), facadeMat(fx), roofMat, roofMat, facadeMat(fz), facadeMat(fz)];
+    const sideA = facadeMat(fx), sideB = facadeMat(fx), frontA = facadeMat(fz), frontB = facadeMat(fz);
+    this.facadeMaterials.push(sideA, sideB, frontA, frontB);
+    const mats = [sideA, sideB, roofMat, roofMat, frontA, frontB];
 
     const building = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mats);
     building.position.set(x, h / 2, z);
