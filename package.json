@@ -1,7 +1,7 @@
 {
   "name": "nightfall-city",
   "private": true,
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Nightfall City - Browser-based 3D open-world RP game prototype",
   "scripts": {
     "dev": "vite",

@@ -36,7 +36,7 @@ npm run preview
 | `D` | Aller à droite |
 | `Shift` | Courir |
 | Souris | Tourner la caméra |
-| `E` | Interagir (parler / livrer / entrer dans le magasin) |
+| `E` | Interagir (parler / livrer / magasin / monter en voiture / sortir) |
 | `1` à `5` | Utiliser l'objet du slot correspondant |
 | `I` | Ouvrir / fermer l'inventaire détaillé |
 | `M` | Afficher / cacher la mini-carte |
@@ -62,6 +62,7 @@ nightfall-city/
 │   │   ├── CharacterModel.js   # Humanoïde articulé + animation de marche
 │   │   ├── CityBuilder.js      # Construction de la ville (immeubles, rues, néons)
 │   │   ├── NPC.js              # PNJ (Tony, Maria, Vince) + proximité
+│   │   ├── Vehicle.js          # Voiture conduisible (physique arcade)
 │   │   ├── MissionSystem.js    # Missions multiples, réputation, métiers
 │   │   ├── InventorySystem.js  # Registre d'objets + slots du HUD
 │   │   ├── InventoryUI.js      # Panneau d'inventaire détaillé (I)
@@ -89,6 +90,9 @@ nightfall-city/
 - **Missions multiples & PNJ** : Tony, Maria et Vince donnent chacun une mission
   (livraison au dépôt, courses à rapporter…). La **réputation** débloque de nouvelles
   missions et fait évoluer ton **métier** (Citoyen → Coursier → Livreur → Livreur Pro).
+- **Voiture conduisible** : approche la voiture (cercle bleu), `E` pour monter, conduis
+  avec ZQSD (physique arcade : accélération, direction, freinage, collisions),
+  compteur de vitesse + son moteur, `E` pour sortir.
 - **Boucle de vie (type Sims)** :
   - **Magasin 24/7 fonctionnel** : entre dans le *24/7 City Mart* (`E`), achète
     burger, sandwich, eau, café, savon avec ton argent.
@@ -120,10 +124,10 @@ nightfall-city/
 ## 🔭 Prochaines améliorations possibles
 
 - Modèles GLTF importés + textures.
-- Conduite des véhicules.
+- Plusieurs véhicules + circulation IA.
 - Système d'argent avancé (banque, loyers).
 - Multijoueur léger (WebSocket) pour le RP.
 
 ---
 
-*Prototype — version 0.2.0*
+*Prototype — version 0.3.0*
