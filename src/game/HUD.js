@@ -8,6 +8,8 @@ export default class HUD {
     document.getElementById('player-name').textContent = state.name;
     document.getElementById('player-money').textContent =
       '$' + state.money.toLocaleString('en-US');
+    const bankEl = document.getElementById('player-bank');
+    if (bankEl) bankEl.textContent = '$' + (state.bank || 0).toLocaleString('en-US');
     document.getElementById('player-rep').textContent = state.reputation;
     document.getElementById('player-job').textContent = state.job.toUpperCase();
   }

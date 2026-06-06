@@ -117,9 +117,19 @@ body {
   font-size: 1rem;
   font-weight: 700;
 }
+.player-cash-row {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+}
 .player-money {
   font-size: 0.95rem;
   color: #4caf50;
+  font-weight: 600;
+}
+.player-bank {
+  font-size: 0.8rem;
+  color: #f5c542;
   font-weight: 600;
 }
 .player-stats {
