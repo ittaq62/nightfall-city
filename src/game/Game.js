@@ -4,7 +4,7 @@ import CityBuilder from './CityBuilder.js';
 import NPC from './NPC.js';
 import HUD from './HUD.js';
 import InventorySystem from './InventorySystem.js';
-import MissionSystem, { MissionState } from './MissionSystem.js';
+import MissionSystem from './MissionSystem.js';
 import ShopSystem from './ShopSystem.js';
 import AudioSystem from './AudioSystem.js';
 import SaveSystem from './SaveSystem.js';
@@ -94,15 +94,28 @@ export default class Game {
     this.player = new PlayerController(this.scene, this.camera, this.canvas);
     this.player.setObstacles(this.city.obstacles);
 
-    // NPC Tony - in front of the 24/7 store
-    this.tony = new NPC(this.scene, new THREE.Vector3(12, 0, 12), 'Tony');
-
     // HUD + systems
     this.hud = new HUD();
     this.audio = new AudioSystem();
     this.player.audio = this.audio;
     this.inventory = new InventorySystem();
-    this.mission = new MissionSystem(this.playerState, this.inventory, this.hud);
+
+    // NPCs around the city
+    this.tony = new NPC(this.scene, new THREE.Vector3(12, 0, 12), 'Tony', {
+      outfit: 0x2a2a35, pants: 0x16161c, skin: 0x6b4f3a, hair: 0x0d0d0d,
+      chatLine: 'Tranquille ? Si t\'as besoin de taf, je suis la.',
+    });
+    this.maria = new NPC(this.scene, new THREE.Vector3(-14, 0, 16), 'Maria', {
+      outfit: 0x8a2f4a, pants: 0x2a2030, skin: 0x8a6a4f, hair: 0x2a1810,
+      chatLine: 'Cette ville ne dort jamais, hein ?',
+    });
+    this.vince = new NPC(this.scene, new THREE.Vector3(16, 0, -12), 'Vince', {
+      outfit: 0x1f3a2a, pants: 0x14201a, skin: 0x5a4636, hair: 0x101010,
+      chatLine: 'Garde l\'oeil ouvert, gamin.',
+    });
+    this.npcs = [this.tony, this.maria, this.vince];
+
+    this.mission = new MissionSystem(this.playerState, this.inventory, this.hud, this.audio);
     this.shop = new ShopSystem(this.playerState, this.inventory, this.hud, this.audio);
     this.shop.onClose = () => { this.player.inputBlocked = false; };
 
@@ -178,6 +191,7 @@ export default class Game {
 
   useSlot(index) {
     if (this.hud.isDialogOpen() || this.shop.isOpen) return;
+    if (this.inventoryOpen) return;
     const result = this.inventory.consumeSlot(index);
     if (!result) return; // empty slot
     if (!result.consumed) {
@@ -216,74 +230,89 @@ export default class Game {
     const ePressed = eDown && !this.eKeyWasDown;
     this.eKeyWasDown = eDown;
 
-    // Don't process world interactions while a dialog or shop is open
-    if (this.hud.isDialogOpen() || this.shop.isOpen) {
+    // Don't process world interactions while a dialog, shop or inventory is open
+    if (this.hud.isDialogOpen() || this.shop.isOpen || this.inventoryOpen) {
       this.hud.hideInteractPrompt();
       return;
     }
 
-    const nearTony = this.tony.inRange;
-    const distToDelivery = distance2D(playerPos, this.city.deliveryZone);
-    const nearDelivery = distToDelivery <= this.city.deliveryRadius;
-    const nearShop = distance2D(playerPos, this.city.shopZone) <= this.city.shopRadius;
+    // --- NPC interactions (closest in-range NPC wins) ---
+    const npc = this.npcs.find(n => n.inRange);
+    if (npc) {
+      const deliver = this.mission.getActiveDeliverableTo('npc:' + npc.name);
+      const offer = this.mission.getOfferFor(npc.name);
+      const locked = this.mission.getLockedFor(npc.name);
 
-    // Tony interaction
-    if (nearTony && this.mission.state === MissionState.AVAILABLE) {
-      this.hud.showInteractPrompt('Appuie sur E pour parler');
-      if (ePressed) {
-        this.openTonyDialog();
+      if (deliver) {
+        this.hud.showInteractPrompt(`Appuie sur E pour livrer a ${npc.name}`);
+        if (ePressed) this.completeMissionFlow(deliver, npc);
+      } else if (offer) {
+        this.hud.showInteractPrompt('Appuie sur E pour parler');
+        if (ePressed) this.openOfferDialog(offer, npc);
+      } else if (locked) {
+        this.hud.showInteractPrompt('Appuie sur E pour parler');
+        if (ePressed) {
+          this.player.inputBlocked = true;
+          this.hud.showDialog(npc.name, locked.lockedText, null, false);
+        }
+      } else {
+        this.hud.showInteractPrompt('Appuie sur E pour parler');
+        if (ePressed) {
+          this.player.inputBlocked = true;
+          this.hud.showDialog(npc.name, npc.chatLine, null, false);
+        }
+      }
+      return;
+    }
+
+    // --- Depot delivery ---
+    const nearDelivery = distance2D(playerPos, this.city.deliveryZone) <= this.city.deliveryRadius;
+    if (nearDelivery) {
+      const m = this.mission.getActiveDeliverableTo('depot');
+      if (m) {
+        this.hud.showInteractPrompt('Appuie sur E pour livrer la marchandise');
+        if (ePressed) this.completeMissionFlow(m, null);
+        return;
       }
     }
-    // Delivery interaction
-    else if (nearDelivery && this.mission.state === MissionState.ACTIVE) {
-      this.hud.showInteractPrompt('Appuie sur E pour livrer le colis');
-      if (ePressed) {
-        this.mission.completeMission();
-        this.audio.success();
-        this.save.save();
-        this.hud.addChatMessage('Systeme', 'Colis livre avec succes !', 'tony');
-      }
-    }
-    // Shop interaction (24/7 City Mart)
-    else if (nearShop) {
+
+    // --- Shop ---
+    const nearShop = distance2D(playerPos, this.city.shopZone) <= this.city.shopRadius;
+    if (nearShop) {
       this.hud.showInteractPrompt('Appuie sur E pour entrer dans le magasin');
       if (ePressed) {
         this.player.inputBlocked = true;
         this.shop.open();
       }
+      return;
     }
-    // Tony after completion
-    else if (nearTony && this.mission.state === MissionState.COMPLETED) {
-      this.hud.showInteractPrompt('Appuie sur E pour parler');
-      if (ePressed) {
-        this.hud.showDialog(
-          'Tony',
-          'Merci pour la livraison ! Reviens me voir, j\'aurai d\'autres missions pour toi.',
-          null,
-          false
-        );
-        this.player.inputBlocked = true;
-      }
-    }
-    else {
-      this.hud.hideInteractPrompt();
-    }
+
+    this.hud.hideInteractPrompt();
   }
 
-  openTonyDialog() {
+  openOfferDialog(mission, npc) {
     this.player.inputBlocked = true;
     this.hud.showDialog(
-      'Tony',
-      'Salut ! J\'ai besoin d\'un livreur. Va deposer ce colis au depot central, la-bas au nord. Tu seras paye 150$ et ta reputation montera. Ca te dit ?',
+      npc.name,
+      mission.offer,
       () => {
-        this.mission.acceptMission();
+        this.mission.accept(mission);
         this.audio.click();
         this.save.save();
-        this.hud.showNotification('Mission acceptee : Livrer le colis au depot central');
-        this.hud.addChatMessage('Tony', 'Parfait ! Le depot est au nord.', 'tony');
+        this.hud.showNotification('Mission acceptee : ' + mission.objective);
+        this.hud.addChatMessage(npc.name, 'Compte sur moi pour te payer.', npc.name.toLowerCase());
       },
       true
     );
+  }
+
+  completeMissionFlow(mission, npc) {
+    if (this.mission.complete(mission)) {
+      this.audio.success();
+      this.save.save();
+      const who = npc ? npc.name : 'Systeme';
+      this.hud.addChatMessage(who, 'Beau boulot, livraison recue !', npc ? npc.name.toLowerCase() : 'tony');
+    }
   }
 
   updateNeeds(delta) {
@@ -349,16 +378,19 @@ export default class Game {
       ctx.fillRect(ox - w / 2, oz - d / 2, w, d);
     }
 
-    // Tony marker
-    const tx = (this.tony.position.x - px) * scale;
-    const tz = (this.tony.position.z - pz) * scale;
-    ctx.fillStyle = '#f5a623';
-    ctx.beginPath();
-    ctx.arc(tx, tz, 3, 0, Math.PI * 2);
-    ctx.fill();
+    // NPC markers (highlight those awaiting a delivery)
+    for (const npc of this.npcs) {
+      const nx = (npc.position.x - px) * scale;
+      const nz = (npc.position.z - pz) * scale;
+      const awaiting = this.mission.hasActiveTarget('npc:' + npc.name);
+      ctx.fillStyle = awaiting ? '#44ccff' : '#f5a623';
+      ctx.beginPath();
+      ctx.arc(nx, nz, awaiting ? 4 : 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
 
-    // Delivery zone marker (when mission active)
-    if (this.mission.state === MissionState.ACTIVE) {
+    // Delivery zone marker (when a mission targets the depot)
+    if (this.mission.hasActiveTarget('depot')) {
       const dx = (this.city.deliveryZone.x - px) * scale;
       const dz = (this.city.deliveryZone.z - pz) * scale;
       ctx.fillStyle = '#44ccff';
@@ -399,7 +431,7 @@ export default class Game {
     const time = this.clock.elapsedTime;
 
     this.player.update(delta, time);
-    this.tony.update(this.player.position, delta, time);
+    for (const npc of this.npcs) npc.update(this.player.position, delta, time);
     this.city.update(time);
     this.dayNight.update(delta);
 

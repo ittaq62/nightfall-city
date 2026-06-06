@@ -10,6 +10,7 @@ export default class NPC {
     this.interactionRange = options.range ?? 3.5;
     this.inRange = false;
     this.ringColor = options.ringColor ?? 0xf5a623;
+    this.chatLine = options.chatLine ?? 'Salut.';
 
     this.group = new THREE.Group();
     this.group.position.copy(position);

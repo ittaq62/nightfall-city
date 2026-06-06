@@ -1,37 +1,132 @@
 export const MissionState = {
-  NONE: 'none',
+  LOCKED: 'locked',
   AVAILABLE: 'available',
   ACTIVE: 'active',
   COMPLETED: 'completed',
 };
 
+// Reputation tiers -> job title
+const REP_TIERS = [
+  { min: 0, job: 'Citoyen' },
+  { min: 20, job: 'Coursier' },
+  { min: 40, job: 'Livreur' },
+  { min: 70, job: 'Livreur Pro' },
+];
+
+export function jobForRep(rep) {
+  let job = 'Citoyen';
+  for (const t of REP_TIERS) if (rep >= t.min) job = t.job;
+  return job;
+}
+
 export default class MissionSystem {
-  constructor(playerState, inventory, hud) {
+  constructor(playerState, inventory, hud, audio = null) {
     this.playerState = playerState;
     this.inventory = inventory;
     this.hud = hud;
-    this.state = MissionState.AVAILABLE;
+    this.audio = audio;
+
+    this.missions = [
+      {
+        id: 'tony_delivery',
+        giver: 'Tony',
+        title: 'Premiere livraison',
+        offer: "Salut ! J'ai besoin d'un livreur. Va deposer ce colis au depot central, au nord. 150$ et de la reputation a la cle. Ca te dit ?",
+        objective: 'Livrer le colis au depot central',
+        target: 'depot',
+        giveItem: 'colis',
+        needItem: 'colis',
+        reward: { money: 150, rep: 10 },
+        requires: {},
+        state: MissionState.AVAILABLE,
+      },
+      {
+        id: 'maria_food',
+        giver: 'Maria',
+        title: 'Un petit creux',
+        offer: "Je meurs de faim... Tu peux m'acheter un burger au 24/7 et me le rapporter ? Je te revaudrai ca.",
+        objective: 'Apporter un burger a Maria',
+        target: 'npc:Maria',
+        needItem: 'burger',
+        reward: { money: 90, rep: 8 },
+        requires: {},
+        state: MissionState.AVAILABLE,
+      },
+      {
+        id: 'vince_big',
+        giver: 'Vince',
+        title: 'Cargaison speciale',
+        offer: "T'as fait tes preuves, gamin. J'ai une grosse cargaison pour le depot. Ca paie tres bien, mais sois discret.",
+        objective: 'Livrer la cargaison au depot central',
+        target: 'depot',
+        giveItem: 'cargaison',
+        needItem: 'cargaison',
+        reward: { money: 350, rep: 20 },
+        requires: { rep: 25 },
+        lockedText: 'Reviens quand tu auras au moins 25 de reputation. La je te ferai confiance.',
+        state: MissionState.LOCKED,
+      },
+    ];
+
+    this.refreshLocks();
     this.updateMissionHUD();
   }
 
-  acceptMission() {
-    if (this.state !== MissionState.AVAILABLE) return;
-    this.state = MissionState.ACTIVE;
-    this.inventory.addItem('colis');
+  refreshLocks() {
+    for (const m of this.missions) {
+      if (m.state === MissionState.LOCKED) {
+        const repOk = !m.requires.rep || this.playerState.reputation >= m.requires.rep;
+        if (repOk) m.state = MissionState.AVAILABLE;
+      }
+    }
+  }
+
+  getById(id) {
+    return this.missions.find(m => m.id === id);
+  }
+
+  getOfferFor(npcName) {
+    return this.missions.find(m => m.giver === npcName && m.state === MissionState.AVAILABLE);
+  }
+
+  getLockedFor(npcName) {
+    return this.missions.find(m => m.giver === npcName && m.state === MissionState.LOCKED);
+  }
+
+  getActiveDeliverableTo(targetKey) {
+    return this.missions.find(
+      m => m.state === MissionState.ACTIVE && m.target === targetKey && this.inventory.hasItem(m.needItem)
+    );
+  }
+
+  hasActiveTarget(targetKey) {
+    return this.missions.some(m => m.state === MissionState.ACTIVE && m.target === targetKey);
+  }
+
+  accept(mission) {
+    if (mission.state !== MissionState.AVAILABLE) return;
+    mission.state = MissionState.ACTIVE;
+    if (mission.giveItem) this.inventory.addItem(mission.giveItem);
     this.updateMissionHUD();
   }
 
-  completeMission() {
-    if (this.state !== MissionState.ACTIVE) return;
-    if (!this.inventory.hasItem('colis')) return;
+  complete(mission) {
+    if (mission.state !== MissionState.ACTIVE) return false;
+    if (!this.inventory.hasItem(mission.needItem)) return false;
 
-    this.inventory.removeItem('colis');
-    this.playerState.money += 150;
-    this.playerState.reputation += 10;
-    this.state = MissionState.COMPLETED;
+    this.inventory.removeItem(mission.needItem);
+    this.playerState.money += mission.reward.money;
+    this.playerState.reputation += mission.reward.rep;
+    this.playerState.job = jobForRep(this.playerState.reputation);
+    mission.state = MissionState.COMPLETED;
+
+    this.refreshLocks();
     this.updateMissionHUD();
     this.hud.updatePlayerInfo(this.playerState);
-    this.hud.showNotification('Mission terminee : +150$ / +10 reputation');
+    this.hud.showNotification(
+      `Mission terminee : +${mission.reward.money}$ / +${mission.reward.rep} reputation`
+    );
+    return true;
   }
 
   updateMissionHUD() {
@@ -39,21 +134,19 @@ export default class MissionSystem {
     const title = document.getElementById('mission-title');
     const desc = document.getElementById('mission-desc');
 
-    if (this.state === MissionState.AVAILABLE) {
-      el.classList.remove('hidden');
-      title.textContent = 'Mission disponible !';
-      desc.textContent = 'Parle a Tony derriere le magasin 24/7';
-    } else if (this.state === MissionState.ACTIVE) {
-      el.classList.remove('hidden');
-      title.textContent = 'Mission en cours';
-      desc.textContent = 'Livrer le colis au depot central';
-    } else if (this.state === MissionState.COMPLETED) {
-      el.classList.remove('hidden');
-      title.textContent = 'Mission terminee !';
-      desc.textContent = 'Bravo ! Tu as gagne 150$ et 10 reputation.';
-      setTimeout(() => el.classList.add('hidden'), 5000);
+    const active = this.missions.filter(m => m.state === MissionState.ACTIVE);
+    const available = this.missions.filter(m => m.state === MissionState.AVAILABLE);
+
+    el.classList.remove('hidden');
+    if (active.length > 0) {
+      title.textContent = active.length > 1 ? `Missions actives (${active.length})` : 'Mission en cours';
+      desc.textContent = active[0].objective + (active.length > 1 ? ` ( +${active.length - 1} autre(s) )` : '');
+    } else if (available.length > 0) {
+      title.textContent = 'Missions disponibles !';
+      desc.textContent = 'Parle aux PNJ marques d\'un cercle pour en accepter une';
     } else {
-      el.classList.add('hidden');
+      title.textContent = 'Toutes les missions terminees !';
+      desc.textContent = 'Bravo, tu as tout livre.';
     }
   }
 }
