@@ -12,7 +12,7 @@ export default class SaveSystem {
       playerState: g.playerState,
       needs: g.needs,
       inventory: g.inventory.slots,
-      mission: g.mission.state,
+      missions: g.mission.missions.map(m => ({ id: m.id, state: m.state })),
       pos: { x: g.player.position.x, z: g.player.position.z },
       yaw: g.player.yaw,
       dayTime: g.dayNight ? g.dayNight.time : undefined,
@@ -38,7 +38,12 @@ export default class SaveSystem {
       if (data.playerState) Object.assign(g.playerState, data.playerState);
       if (data.needs) Object.assign(g.needs, data.needs);
       if (Array.isArray(data.inventory)) g.inventory.slots = data.inventory;
-      if (data.mission) g.mission.state = data.mission;
+      if (Array.isArray(data.missions)) {
+        for (const sm of data.missions) {
+          const m = g.mission.getById(sm.id);
+          if (m) m.state = sm.state;
+        }
+      }
       if (data.pos) g.player.position.set(data.pos.x, 0, data.pos.z);
       if (typeof data.yaw === 'number') g.player.yaw = data.yaw;
       if (typeof data.dayTime === 'number' && g.dayNight) g.dayNight.time = data.dayTime;

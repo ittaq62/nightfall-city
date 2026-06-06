@@ -41,6 +41,21 @@ export default class MissionSystem {
         state: MissionState.AVAILABLE,
       },
       {
+        id: 'tony_courier',
+        giver: 'Tony',
+        title: 'Tournee de livraison',
+        offer: "Tu veux bosser regulierement ? Prends ce colis, file au depot, et reviens. Je te paie a chaque tournee.",
+        objective: 'Livrer un colis au depot (tournee)',
+        target: 'depot',
+        giveItem: 'colis',
+        needItem: 'colis',
+        reward: { money: 120, rep: 4 },
+        requires: { mission: 'tony_delivery' },
+        repeatable: true,
+        lockedText: 'Fais d\'abord ta premiere livraison, on verra ensuite.',
+        state: MissionState.LOCKED,
+      },
+      {
         id: 'maria_food',
         giver: 'Maria',
         title: 'Un petit creux',
@@ -51,6 +66,19 @@ export default class MissionSystem {
         reward: { money: 90, rep: 8 },
         requires: {},
         state: MissionState.AVAILABLE,
+      },
+      {
+        id: 'maria_coffee',
+        giver: 'Maria',
+        title: 'Pause cafe',
+        offer: "Tu peux me ramener un cafe du 24/7 ? J'ai besoin d'un coup de fouet.",
+        objective: 'Apporter un cafe a Maria',
+        target: 'npc:Maria',
+        needItem: 'cafe',
+        reward: { money: 80, rep: 6 },
+        requires: { mission: 'maria_food' },
+        lockedText: 'On se connait a peine... rends-moi d\'abord un premier service.',
+        state: MissionState.LOCKED,
       },
       {
         id: 'vince_big',
@@ -66,6 +94,20 @@ export default class MissionSystem {
         lockedText: 'Reviens quand tu auras au moins 25 de reputation. La je te ferai confiance.',
         state: MissionState.LOCKED,
       },
+      {
+        id: 'vince_night',
+        giver: 'Vince',
+        title: 'Cargaison de nuit',
+        offer: "Grosse confiance maintenant. Une derniere cargaison, gros paquet, gros billets. Discret.",
+        objective: 'Livrer la cargaison de nuit au depot',
+        target: 'depot',
+        giveItem: 'cargaison',
+        needItem: 'cargaison',
+        reward: { money: 500, rep: 25 },
+        requires: { rep: 40, mission: 'vince_big' },
+        lockedText: 'Finis d\'abord le premier boulot, et reviens avec 40 de reputation.',
+        state: MissionState.LOCKED,
+      },
     ];
 
     this.refreshLocks();
@@ -76,7 +118,9 @@ export default class MissionSystem {
     for (const m of this.missions) {
       if (m.state === MissionState.LOCKED) {
         const repOk = !m.requires.rep || this.playerState.reputation >= m.requires.rep;
-        if (repOk) m.state = MissionState.AVAILABLE;
+        const prereq = m.requires.mission ? this.getById(m.requires.mission) : null;
+        const missionOk = !prereq || prereq.state === MissionState.COMPLETED;
+        if (repOk && missionOk) m.state = MissionState.AVAILABLE;
       }
     }
   }
@@ -118,7 +162,8 @@ export default class MissionSystem {
     this.playerState.money += mission.reward.money;
     this.playerState.reputation += mission.reward.rep;
     this.playerState.job = jobForRep(this.playerState.reputation);
-    mission.state = MissionState.COMPLETED;
+    // Repeatable jobs become available again; one-shots are marked done
+    mission.state = mission.repeatable ? MissionState.AVAILABLE : MissionState.COMPLETED;
 
     this.refreshLocks();
     this.updateMissionHUD();
