@@ -17,7 +17,7 @@ export default class MissionSystem {
   acceptMission() {
     if (this.state !== MissionState.AVAILABLE) return;
     this.state = MissionState.ACTIVE;
-    this.inventory.addItem('colis', 'Colis de Tony');
+    this.inventory.addItem('colis');
     this.updateMissionHUD();
   }
 
