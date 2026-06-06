@@ -651,6 +651,7 @@ body {
 .chat-msg .chat-author.emma { color: #ef5350; }
 .chat-msg .chat-author.tony { color: #f5a623; }
 .chat-msg .chat-author.lucas { color: #66bb6a; }
+.chat-msg .chat-author.online { color: #66ddff; }
 .chat-input-row {
   border-top: 1px solid rgba(255,255,255,0.08);
   padding: 6px 10px;

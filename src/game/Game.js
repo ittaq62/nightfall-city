@@ -4,6 +4,7 @@ import CityBuilder from './CityBuilder.js';
 import NPC from './NPC.js';
 import Vehicle from './Vehicle.js';
 import TrafficSystem from './TrafficSystem.js';
+import OnlinePlayers from './OnlinePlayers.js';
 import HUD from './HUD.js';
 import InventorySystem from './InventorySystem.js';
 import MissionSystem, { jobForRep } from './MissionSystem.js';
@@ -128,6 +129,11 @@ export default class Game {
 
     // AI traffic cruising the main roads
     this.traffic = new TrafficSystem({ scene: this.scene, player: this.player });
+
+    // Simulated online players (local, no backend)
+    this.online = new OnlinePlayers({ scene: this.scene, hud: this.hud, count: 5 });
+    const globalTab = document.getElementById('chat-global-tab');
+    if (globalTab) globalTab.textContent = `GLOBAL ● ${this.online.players.length + 1}`;
 
     this.mission = new MissionSystem(this.playerState, this.inventory, this.hud, this.audio);
     this.shop = new ShopSystem(this.playerState, this.inventory, this.hud, this.audio);
@@ -520,6 +526,16 @@ export default class Game {
       ctx.fillRect(cx2 - 1.5, cz2 - 1.5, 3, 3);
     }
 
+    // Online players
+    ctx.fillStyle = '#66ddff';
+    for (const op of this.online.players) {
+      const ox = (op.pos.x - px) * scale;
+      const oz = (op.pos.z - pz) * scale;
+      ctx.beginPath();
+      ctx.arc(ox, oz, 2.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
     // Player's drivable car
     {
       const vx = (this.vehicle.position.x - px) * scale;
@@ -593,6 +609,7 @@ export default class Game {
 
     for (const npc of this.npcs) npc.update(this.player.position, delta, time);
     this.traffic.update(delta);
+    this.online.update(delta, time);
     this.city.update(time);
     this.dayNight.update(delta);
     this.weather.update(delta);
