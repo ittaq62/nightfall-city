@@ -13,6 +13,7 @@ export default class PlayerController {
 
     this.walkSpeed = 6;
     this.runSpeed = 11;
+    this.energyFactor = 1; // reduced when the player is exhausted
 
     // Camera orbit angles (start facing the 24/7 store & Tony cluster)
     this.yaw = 3.95;      // horizontal rotation
@@ -113,7 +114,7 @@ export default class PlayerController {
     }
 
     const running = this.keys['ShiftLeft'] || this.keys['ShiftRight'];
-    const speed = running ? this.runSpeed : this.walkSpeed;
+    const speed = (running ? this.runSpeed : this.walkSpeed) * this.energyFactor;
 
     if (move.lengthSq() > 0) {
       move.normalize().multiplyScalar(speed * delta);

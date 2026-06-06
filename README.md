@@ -36,7 +36,8 @@ npm run preview
 | `D` | Aller à droite |
 | `Shift` | Courir |
 | Souris | Tourner la caméra |
-| `E` | Interagir (parler / livrer) |
+| `E` | Interagir (parler / livrer / entrer dans le magasin) |
+| `1` à `5` | Utiliser l'objet du slot correspondant |
 | `H` | Afficher / cacher l'aide |
 | `Échap` | Libérer la souris |
 
@@ -76,6 +77,13 @@ nightfall-city/
 - **PNJ Tony** : approche → label + prompt « Appuie sur E pour parler ».
 - **Mission complète** : parler à Tony → recevoir le colis → le livrer au dépôt central
   → **+150 $ / +10 réputation** + notification.
+- **Boucle de vie (type Sims)** :
+  - **Magasin 24/7 fonctionnel** : entre dans le *24/7 City Mart* (`E`), achète
+    burger, sandwich, eau, café, savon avec ton argent.
+  - **Objets consommables** : utilise un objet (`1`-`5`) pour remonter tes besoins
+    (le burger remplit la faim, le café redonne de l'énergie, etc.).
+  - **Conséquences** : si l'énergie tombe trop bas, le personnage ralentit ; les
+    barres de besoins critiques clignotent en rouge.
 - **HUD complet** : profil (nom, argent, réputation, métier), barres de besoins
   (faim, énergie, hygiène, stress) qui baissent avec le temps, mission active,
   minimap stylisée, inventaire rapide (5 slots), chat RP factice.
@@ -85,8 +93,6 @@ nightfall-city/
 ## 🔭 Prochaines améliorations possibles
 
 - Plusieurs PNJ et missions enchaînées.
-- Vrai système de magasin (acheter de la nourriture pour remplir les besoins).
-- Conséquences des besoins (vitesse réduite si fatigué, etc.).
 - Sons et musique d'ambiance.
 - Modèles 3D (GLTF) à la place des capsules.
 - Sauvegarde locale (localStorage).

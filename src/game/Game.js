@@ -5,7 +5,8 @@ import NPC from './NPC.js';
 import HUD from './HUD.js';
 import InventorySystem from './InventorySystem.js';
 import MissionSystem, { MissionState } from './MissionSystem.js';
-import { distance2D } from './Utils.js';
+import ShopSystem from './ShopSystem.js';
+import { distance2D, clamp } from './Utils.js';
 
 export default class Game {
   constructor(canvas) {
@@ -96,6 +97,8 @@ export default class Game {
     this.hud = new HUD();
     this.inventory = new InventorySystem();
     this.mission = new MissionSystem(this.playerState, this.inventory, this.hud);
+    this.shop = new ShopSystem(this.playerState, this.inventory, this.hud);
+    this.shop.onClose = () => { this.player.inputBlocked = false; };
 
     this.hud.updatePlayerInfo(this.playerState);
     this.hud.updateNeeds(this.needs);
@@ -122,7 +125,31 @@ export default class Game {
       if (e.code === 'KeyH') {
         document.getElementById('hud-controls').classList.toggle('hidden');
       }
+      // Use inventory item with number keys 1-5
+      if (e.code.startsWith('Digit') && !e.repeat) {
+        const n = parseInt(e.code.slice(5), 10);
+        if (n >= 1 && n <= 5) this.useSlot(n - 1);
+      }
     });
+  }
+
+  useSlot(index) {
+    if (this.hud.isDialogOpen() || this.shop.isOpen) return;
+    const result = this.inventory.consumeSlot(index);
+    if (!result) return; // empty slot
+    if (!result.consumed) {
+      this.hud.showNotification('Cet objet ne peut pas etre utilise');
+      return;
+    }
+    const effects = result.def.effects || {};
+    const parts = [];
+    for (const key in effects) {
+      this.needs[key] = clamp(this.needs[key] + effects[key], 0, 100);
+      const sign = effects[key] > 0 ? '+' : '';
+      parts.push(`${key} ${sign}${effects[key]}`);
+    }
+    this.hud.updateNeeds(this.needs);
+    this.hud.showNotification(`${result.def.name} utilise (${parts.join(', ')})`);
   }
 
   onResize() {
@@ -137,8 +164,8 @@ export default class Game {
     const ePressed = eDown && !this.eKeyWasDown;
     this.eKeyWasDown = eDown;
 
-    // Don't process world interactions while a dialog is open
-    if (this.hud.isDialogOpen()) {
+    // Don't process world interactions while a dialog or shop is open
+    if (this.hud.isDialogOpen() || this.shop.isOpen) {
       this.hud.hideInteractPrompt();
       return;
     }
@@ -146,6 +173,7 @@ export default class Game {
     const nearTony = this.tony.inRange;
     const distToDelivery = distance2D(playerPos, this.city.deliveryZone);
     const nearDelivery = distToDelivery <= this.city.deliveryRadius;
+    const nearShop = distance2D(playerPos, this.city.shopZone) <= this.city.shopRadius;
 
     // Tony interaction
     if (nearTony && this.mission.state === MissionState.AVAILABLE) {
@@ -160,6 +188,14 @@ export default class Game {
       if (ePressed) {
         this.mission.completeMission();
         this.hud.addChatMessage('Systeme', 'Colis livre avec succes !', 'tony');
+      }
+    }
+    // Shop interaction (24/7 City Mart)
+    else if (nearShop) {
+      this.hud.showInteractPrompt('Appuie sur E pour entrer dans le magasin');
+      if (ePressed) {
+        this.player.inputBlocked = true;
+        this.shop.open();
       }
     }
     // Tony after completion
@@ -200,6 +236,9 @@ export default class Game {
     this.needs.energy = Math.max(0, this.needs.energy - delta * 0.1);
     this.needs.hygiene = Math.max(0, this.needs.hygiene - delta * 0.08);
     this.needs.stress = Math.min(100, this.needs.stress + delta * 0.05);
+
+    // Consequence: low energy slows the player down
+    this.player.energyFactor = this.needs.energy < 20 ? 0.55 : 1;
 
     // Update HUD periodically (every ~0.5s)
     this.needsTimer = (this.needsTimer || 0) + delta;

@@ -13,17 +13,17 @@ export default class HUD {
   }
 
   updateNeeds(needs) {
-    const map = {
-      hunger: 'hunger',
-      energy: 'energy',
-      hygiene: 'hygiene',
-      stress: 'stress',
-    };
-    for (const key in map) {
+    const keys = ['hunger', 'energy', 'hygiene', 'stress'];
+    for (const key of keys) {
       const val = Math.round(needs[key]);
-      const bar = document.getElementById(`bar-${map[key]}`);
-      const valEl = document.getElementById(`val-${map[key]}`);
-      if (bar) bar.style.width = val + '%';
+      const bar = document.getElementById(`bar-${key}`);
+      const valEl = document.getElementById(`val-${key}`);
+      if (bar) {
+        bar.style.width = val + '%';
+        // Stress is bad when HIGH; the others are bad when LOW
+        const critical = key === 'stress' ? val > 80 : val < 20;
+        bar.classList.toggle('critical', critical);
+      }
       if (valEl) valEl.textContent = val + '%';
     }
   }
@@ -43,6 +43,8 @@ export default class HUD {
     document.getElementById('dialog-name').textContent = name;
     document.getElementById('dialog-text').textContent = text;
     el.classList.remove('hidden');
+    // Release the mouse so dialog buttons become clickable
+    document.exitPointerLock();
 
     const acceptBtn = document.getElementById('dialog-accept');
     const closeBtn = document.getElementById('dialog-close');
