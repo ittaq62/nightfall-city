@@ -95,6 +95,33 @@
       <button id="shop-close">Fermer</button>
     </div>
 
+    <!-- HUD: Bank panel -->
+    <div id="hud-bank" class="hidden">
+      <div class="bank-header">
+        <span class="bank-title">BANQUE DE NIGHTFALL</span>
+      </div>
+      <div class="bank-balances">
+        <div class="bank-bal"><span class="bank-bal-label">Liquide</span><span class="bank-bal-val" id="bank-cash">$0</span></div>
+        <div class="bank-bal"><span class="bank-bal-label">Epargne</span><span class="bank-bal-val savings" id="bank-savings">$0</span></div>
+      </div>
+      <div class="bank-actions">
+        <div class="bank-col">
+          <span class="bank-col-title">Deposer</span>
+          <button data-bank="dep100">+ $100</button>
+          <button data-bank="dep500">+ $500</button>
+          <button data-bank="depall">Tout</button>
+        </div>
+        <div class="bank-col">
+          <span class="bank-col-title">Retirer</span>
+          <button data-bank="wd100">- $100</button>
+          <button data-bank="wd500">- $500</button>
+          <button data-bank="wdall">Tout</button>
+        </div>
+      </div>
+      <div class="bank-hint">L'argent en banque est a l'abri. Pense a payer ton loyer (chaque matin).</div>
+      <button id="bank-close">Fermer</button>
+    </div>
+
     <!-- HUD: Inventory panel -->
     <div id="hud-inventory-panel" class="hidden">
       <div class="inv-panel-header">

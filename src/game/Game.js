@@ -6,8 +6,9 @@ import Vehicle from './Vehicle.js';
 import TrafficSystem from './TrafficSystem.js';
 import HUD from './HUD.js';
 import InventorySystem from './InventorySystem.js';
-import MissionSystem from './MissionSystem.js';
+import MissionSystem, { jobForRep } from './MissionSystem.js';
 import ShopSystem from './ShopSystem.js';
+import BankSystem from './BankSystem.js';
 import InventoryUI from './InventoryUI.js';
 import AudioSystem from './AudioSystem.js';
 import SaveSystem from './SaveSystem.js';
@@ -24,9 +25,11 @@ export default class Game {
     this.playerState = {
       name: 'Alex Mercer',
       money: 2450,
+      bank: 0,
       reputation: 12,
       job: 'Citoyen',
     };
+    this.rent = 60; // charged each in-game morning
 
     this.needs = {
       hunger: 72,
@@ -130,6 +133,10 @@ export default class Game {
     this.shop = new ShopSystem(this.playerState, this.inventory, this.hud, this.audio);
     this.shop.onClose = () => { this.player.inputBlocked = false; };
 
+    // Bank
+    this.bank = new BankSystem(this.playerState, this.hud, this.audio);
+    this.bank.onClose = () => { this.player.inputBlocked = false; };
+
     // Detailed inventory panel (I)
     this.inventoryUI = new InventoryUI(this.inventory, (i) => this.useSlot(i, true));
     this.inventoryUI.onClose = () => { this.player.inputBlocked = false; };
@@ -168,6 +175,7 @@ export default class Game {
 
     // Auto-save every 8 seconds and before leaving the page
     this.autoSaveTimer = 0;
+    this._prevDayTime = this.dayNight.time; // for daily rent detection
     window.addEventListener('beforeunload', () => this.save.save());
 
     // Minimap setup
@@ -219,7 +227,7 @@ export default class Game {
   }
 
   useSlot(index, fromPanel = false) {
-    if (this.hud.isDialogOpen() || this.shop.isOpen) return;
+    if (this.hud.isDialogOpen() || this.shop.isOpen || this.bank.isOpen) return;
     if (!fromPanel && this.inventoryUI.isOpen) return;
     const result = this.inventory.consumeSlot(index);
     if (!result) return; // empty slot
@@ -310,8 +318,8 @@ export default class Game {
       return;
     }
 
-    // Don't process world interactions while a dialog, shop or inventory is open
-    if (this.hud.isDialogOpen() || this.shop.isOpen || this.inventoryUI.isOpen) {
+    // Don't process world interactions while a panel is open
+    if (this.hud.isDialogOpen() || this.shop.isOpen || this.bank.isOpen || this.inventoryUI.isOpen) {
       this.hud.hideInteractPrompt();
       return;
     }
@@ -374,6 +382,17 @@ export default class Game {
       return;
     }
 
+    // --- Bank ---
+    const nearBank = distance2D(playerPos, this.city.bankZone) <= this.city.bankRadius;
+    if (nearBank) {
+      this.hud.showInteractPrompt('Appuie sur E pour la banque');
+      if (ePressed) {
+        this.player.inputBlocked = true;
+        this.bank.open();
+      }
+      return;
+    }
+
     this.hud.hideInteractPrompt();
   }
 
@@ -402,6 +421,29 @@ export default class Game {
     }
   }
 
+  chargeRent() {
+    const ps = this.playerState;
+    let due = this.rent;
+    const fromCash = Math.min(ps.money, due);
+    ps.money -= fromCash;
+    due -= fromCash;
+    if (due > 0) {
+      const fromBank = Math.min(ps.bank, due);
+      ps.bank -= fromBank;
+      due -= fromBank;
+    }
+    this.hud.updatePlayerInfo(ps);
+    this.save.save();
+    if (due > 0) {
+      ps.reputation = Math.max(0, ps.reputation - 2);
+      ps.job = jobForRep(ps.reputation);
+      this.hud.updatePlayerInfo(ps);
+      this.hud.showNotification(`Loyer impaye ! -2 reputation`);
+    } else {
+      this.hud.showNotification(`Loyer paye : -$${this.rent}`);
+    }
+  }
+
   updateNeeds(delta) {
     // Needs slowly decay over time
     this.needs.hunger = Math.max(0, this.needs.hunger - delta * 0.15);
@@ -411,6 +453,11 @@ export default class Game {
 
     // Consequence: low energy slows the player down
     this.player.energyFactor = this.needs.energy < 20 ? 0.55 : 1;
+
+    // Daily rent: charged once when the clock crosses 08:00
+    const t = this.dayNight.time;
+    if (this._prevDayTime < 8 && t >= 8) this.chargeRent();
+    this._prevDayTime = t;
 
     // Update HUD periodically (every ~0.5s)
     this.needsTimer = (this.needsTimer || 0) + delta;

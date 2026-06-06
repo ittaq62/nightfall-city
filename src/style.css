@@ -345,6 +345,72 @@ body {
 }
 #shop-close:hover { background: rgba(255,255,255,0.18); }
 
+/* Bank panel */
+#hud-bank {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 440px;
+  max-width: 92vw;
+  background: rgba(10,10,15,0.96);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 12px;
+  padding: 20px;
+  backdrop-filter: blur(15px);
+  z-index: 40;
+}
+.bank-title {
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: #f5c542;
+  letter-spacing: 0.08em;
+}
+.bank-balances {
+  display: flex;
+  gap: 12px;
+  margin: 14px 0;
+}
+.bank-bal {
+  flex: 1;
+  background: rgba(255,255,255,0.05);
+  border-radius: 8px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.bank-bal-label { font-size: 0.72rem; color: #888; text-transform: uppercase; letter-spacing: 0.08em; }
+.bank-bal-val { font-size: 1.3rem; font-weight: 700; color: #4caf50; }
+.bank-bal-val.savings { color: #f5c542; }
+.bank-actions { display: flex; gap: 12px; margin-bottom: 14px; }
+.bank-col { flex: 1; display: flex; flex-direction: column; gap: 6px; }
+.bank-col-title { font-size: 0.75rem; color: #aaa; text-align: center; margin-bottom: 2px; }
+.bank-col button {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 6px;
+  padding: 8px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.bank-col button:hover { background: rgba(245,197,66,0.2); }
+.bank-hint { font-size: 0.72rem; color: #777; margin-bottom: 14px; text-align: center; }
+#bank-close {
+  width: 100%;
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+#bank-close:hover { background: rgba(255,255,255,0.18); }
+
 /* Inventory panel */
 #hud-inventory-panel {
   position: absolute;

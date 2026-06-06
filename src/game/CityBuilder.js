@@ -21,6 +21,7 @@ export default class CityBuilder {
     this.buildProps();
     this.buildDeliveryZone();
     this.buildShopEntrance();
+    this.buildBank();
     this.buildBoundaryWalls();
     return this;
   }
@@ -354,6 +355,39 @@ export default class CityBuilder {
 
     this.shopZone = new THREE.Vector3(zoneX, 0, zoneZ);
     this.shopRadius = 2.6;
+  }
+
+  buildBank() {
+    // Bank building on the north sidewalk
+    this.createBuilding(-30, 16, 14, 16, 12, 0x2e2a1f, 'BANQUE', '#f5c542');
+
+    const zoneX = -30;
+    const zoneZ = 9.5;
+    const padMat = new THREE.MeshStandardMaterial({
+      color: 0x3a3320, emissive: 0xf5c542, emissiveIntensity: 0.35,
+      transparent: true, opacity: 0.7,
+    });
+    const pad = new THREE.Mesh(new THREE.CircleGeometry(2.2, 32), padMat);
+    pad.rotation.x = -Math.PI / 2;
+    pad.position.set(zoneX, 0.05, zoneZ);
+    this.scene.add(pad);
+
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(2.1, 2.4, 32),
+      new THREE.MeshBasicMaterial({ color: 0xf5c542, side: THREE.DoubleSide })
+    );
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.set(zoneX, 0.06, zoneZ);
+    this.scene.add(ring);
+    this.bankRing = ring;
+
+    const light = new THREE.PointLight(0xf5c542, 1.2, 12);
+    light.position.set(zoneX, 3, zoneZ);
+    this.scene.add(light);
+    this.nightLights.push({ light, base: 1.2 });
+
+    this.bankZone = new THREE.Vector3(zoneX, 0, zoneZ);
+    this.bankRadius = 2.6;
   }
 
   buildBoundaryWalls() {
