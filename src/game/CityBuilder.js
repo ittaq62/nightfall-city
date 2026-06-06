@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { createTextSprite } from './Utils.js';
-import { makeAsphalt, makeConcrete, makeGround } from './Textures.js';
+import { makeAsphalt, makeConcrete, makeGround, makeFacade } from './Textures.js';
 
 export default class CityBuilder {
   constructor(scene) {
@@ -106,17 +106,24 @@ export default class CityBuilder {
   }
 
   createBuilding(x, z, w, h, d, color, name = null, signColor = '#ffffff') {
-    const mat = new THREE.MeshStandardMaterial({ color, roughness: 0.7, metalness: 0.2 });
-    const building = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+    const wallHex = '#' + new THREE.Color(color).getHexString();
+    const fz = makeFacade(w, h, wallHex); // front/back facade
+    const fx = makeFacade(d, h, wallHex); // side facade
+    const facadeMat = (f) => new THREE.MeshStandardMaterial({
+      map: f.map, emissiveMap: f.emissiveMap, emissive: 0xffffff,
+      emissiveIntensity: 0.9, roughness: 0.85, metalness: 0.1,
+    });
+    const roofMat = new THREE.MeshStandardMaterial({ color: 0x101016, roughness: 0.95 });
+    // BoxGeometry face order: +x, -x, +y, -y, +z, -z
+    const mats = [facadeMat(fx), facadeMat(fx), roofMat, roofMat, facadeMat(fz), facadeMat(fz)];
+
+    const building = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mats);
     building.position.set(x, h / 2, z);
     building.castShadow = true;
     building.receiveShadow = true;
     this.scene.add(building);
     this.addObstacle(building);
     this.minimapObjects.push({ x, z, w, d, color: '#444' });
-
-    // Windows (emissive dots grid on front face)
-    this.addWindows(x, z, w, h, d);
 
     // Sign
     if (name) {
@@ -132,32 +139,6 @@ export default class CityBuilder {
     }
 
     return building;
-  }
-
-  addWindows(x, z, w, h, d) {
-    const winMat = new THREE.MeshStandardMaterial({
-      color: 0xffd98a,
-      emissive: 0xffb74d,
-      emissiveIntensity: 1.0,
-    });
-    const darkMat = new THREE.MeshStandardMaterial({ color: 0x1a1a20 });
-
-    const cols = Math.max(1, Math.floor(w / 2.5));
-    const rows = Math.max(1, Math.floor(h / 3));
-    const startY = 2;
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        const lit = Math.random() > 0.4;
-        const win = new THREE.Mesh(
-          new THREE.PlaneGeometry(0.8, 1.2),
-          lit ? winMat : darkMat
-        );
-        const wx = x - w / 2 + (c + 0.5) * (w / cols);
-        const wy = startY + r * 3;
-        win.position.set(wx, wy, z + d / 2 + 0.05);
-        if (wy < h - 0.5) this.scene.add(win);
-      }
-    }
   }
 
   buildBuildings() {

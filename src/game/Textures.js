@@ -52,3 +52,48 @@ export function makeGround(repeatX = 1, repeatY = 1) {
   const { cv } = noiseCanvas(256, '#0a0a10', { count: 1500, min: 1, max: 3, r: 70, g: 70, b: 100, alpha: 0.14 });
   return toTexture(cv, repeatX, repeatY);
 }
+
+// Building facade: a color map (wall + windows) and an emissive map (only lit windows glow).
+export function makeFacade(w, h, wallHex = '#1d1d26') {
+  const cols = Math.max(2, Math.round(w / 2.5));
+  const rows = Math.max(2, Math.round(h / 3));
+  const cell = 28;
+  const cw = cols * cell;
+  const ch = rows * cell;
+
+  const map = document.createElement('canvas');
+  map.width = cw; map.height = ch;
+  const m = map.getContext('2d');
+  m.fillStyle = wallHex;
+  m.fillRect(0, 0, cw, ch);
+  // faint wall noise
+  for (let i = 0; i < cw * ch / 40; i++) {
+    m.fillStyle = `rgba(0,0,0,${Math.random() * 0.15})`;
+    m.fillRect(Math.random() * cw, Math.random() * ch, 2, 2);
+  }
+
+  const em = document.createElement('canvas');
+  em.width = cw; em.height = ch;
+  const e = em.getContext('2d');
+  e.fillStyle = '#000';
+  e.fillRect(0, 0, cw, ch);
+
+  const litColors = ['#ffd98a', '#ffcf6e', '#fff0c0', '#cfe3ff'];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const px = c * cell + 5;
+      const py = r * cell + 5;
+      const ww = cell - 10;
+      const hh = cell - 10;
+      const lit = Math.random() > 0.5;
+      m.fillStyle = lit ? '#caa86a' : '#0e0e15';
+      m.fillRect(px, py, ww, hh);
+      if (lit) {
+        e.fillStyle = litColors[Math.floor(Math.random() * litColors.length)];
+        e.fillRect(px, py, ww, hh);
+      }
+    }
+  }
+
+  return { map: new THREE.CanvasTexture(map), emissiveMap: new THREE.CanvasTexture(em) };
+}
