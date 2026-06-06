@@ -18,6 +18,7 @@ export default class CityBuilder {
     this.buildCars();
     this.buildProps();
     this.buildDeliveryZone();
+    this.buildShopEntrance();
     this.buildBoundaryWalls();
     return this;
   }
@@ -307,6 +308,42 @@ export default class CityBuilder {
     this.minimapObjects.push({ x: zoneX, z: zoneZ, w: 8, d: 8, color: '#44ccff', isZone: true });
   }
 
+  buildShopEntrance() {
+    // Glowing entrance pad in front of the 24/7 City Mart (store is at 18,18)
+    const zoneX = 18;
+    const zoneZ = 11.5;
+
+    const padMat = new THREE.MeshStandardMaterial({
+      color: 0x1a4a1a,
+      emissive: 0x33cc44,
+      emissiveIntensity: 0.5,
+      transparent: true,
+      opacity: 0.7,
+    });
+    const pad = new THREE.Mesh(new THREE.CircleGeometry(2.2, 32), padMat);
+    pad.rotation.x = -Math.PI / 2;
+    pad.position.set(zoneX, 0.05, zoneZ);
+    this.scene.add(pad);
+
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0x44ff66, side: THREE.DoubleSide });
+    const ring = new THREE.Mesh(new THREE.RingGeometry(2.1, 2.4, 32), ringMat);
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.set(zoneX, 0.06, zoneZ);
+    this.scene.add(ring);
+    this.shopRing = ring;
+
+    const label = createTextSprite('ENTREE', { color: '#44ff66', fontSize: 24, scale: 0.012 });
+    label.position.set(zoneX, 2.6, zoneZ);
+    this.scene.add(label);
+
+    const light = new THREE.PointLight(0x44ff66, 1.2, 12);
+    light.position.set(zoneX, 3, zoneZ);
+    this.scene.add(light);
+
+    this.shopZone = new THREE.Vector3(zoneX, 0, zoneZ);
+    this.shopRadius = 2.6;
+  }
+
   buildBoundaryWalls() {
     // Invisible boundary boxes to keep player inside the map
     const limit = 58;
@@ -330,6 +367,9 @@ export default class CityBuilder {
     if (this.deliveryRing) {
       this.deliveryRing.material.opacity = 0.5 + Math.sin(time * 2) * 0.3;
       this.deliveryRing.scale.setScalar(1 + Math.sin(time * 2) * 0.05);
+    }
+    if (this.shopRing) {
+      this.shopRing.scale.setScalar(1 + Math.sin(time * 2.5) * 0.06);
     }
   }
 }
