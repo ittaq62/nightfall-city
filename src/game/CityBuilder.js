@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { createTextSprite } from './Utils.js';
+import { makeAsphalt, makeConcrete, makeGround } from './Textures.js';
 
 export default class CityBuilder {
   constructor(scene) {
@@ -32,9 +33,10 @@ export default class CityBuilder {
 
   buildGround() {
     const groundMat = new THREE.MeshStandardMaterial({
-      color: 0x0a0a0f,
+      color: 0x12121a,
       roughness: 0.3,
       metalness: 0.6,
+      map: makeGround(16, 16),
     });
     const ground = new THREE.Mesh(new THREE.PlaneGeometry(120, 120), groundMat);
     ground.rotation.x = -Math.PI / 2;
@@ -43,21 +45,24 @@ export default class CityBuilder {
   }
 
   buildRoads() {
-    const roadMat = new THREE.MeshStandardMaterial({
-      color: 0x15151c,
-      roughness: 0.4,
-      metalness: 0.5,
-    });
     // Main horizontal road
-    const roadH = new THREE.Mesh(new THREE.PlaneGeometry(120, 12), roadMat);
+    const roadH = new THREE.Mesh(
+      new THREE.PlaneGeometry(120, 12),
+      new THREE.MeshStandardMaterial({ color: 0x1c1c24, roughness: 0.45, metalness: 0.5, map: makeAsphalt(30, 3) })
+    );
     roadH.rotation.x = -Math.PI / 2;
     roadH.position.y = 0.01;
+    roadH.receiveShadow = true;
     this.scene.add(roadH);
 
     // Cross road
-    const roadV = new THREE.Mesh(new THREE.PlaneGeometry(12, 120), roadMat);
+    const roadV = new THREE.Mesh(
+      new THREE.PlaneGeometry(12, 120),
+      new THREE.MeshStandardMaterial({ color: 0x1c1c24, roughness: 0.45, metalness: 0.5, map: makeAsphalt(3, 30) })
+    );
     roadV.rotation.x = -Math.PI / 2;
     roadV.position.y = 0.01;
+    roadV.receiveShadow = true;
     this.scene.add(roadV);
 
     // Road markings (dashed center line)
@@ -79,7 +84,6 @@ export default class CityBuilder {
   }
 
   buildSidewalks() {
-    const swMat = new THREE.MeshStandardMaterial({ color: 0x2a2a32, roughness: 0.8 });
     // Sidewalks alongside the main road
     const positions = [
       { x: 0, z: 9, w: 120, d: 4 },
@@ -88,6 +92,11 @@ export default class CityBuilder {
       { x: -9, z: 0, w: 4, d: 120 },
     ];
     for (const p of positions) {
+      const swMat = new THREE.MeshStandardMaterial({
+        color: 0x33333c,
+        roughness: 0.85,
+        map: makeConcrete(p.w / 4, p.d / 4),
+      });
       const sw = new THREE.Mesh(new THREE.BoxGeometry(p.w, 0.2, p.d), swMat);
       sw.position.set(p.x, 0.1, p.z);
       sw.receiveShadow = true;
