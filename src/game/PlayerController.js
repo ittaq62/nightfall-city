@@ -1,0 +1,172 @@
+import * as THREE from 'three';
+import { checkBoxCollision, clamp } from './Utils.js';
+
+export default class PlayerController {
+  constructor(scene, camera, domElement) {
+    this.scene = scene;
+    this.camera = camera;
+    this.domElement = domElement;
+
+    this.position = new THREE.Vector3(0, 0, 2);
+    this.velocity = new THREE.Vector3();
+    this.radius = 0.6;
+
+    this.walkSpeed = 6;
+    this.runSpeed = 11;
+
+    // Camera orbit angles (start facing the 24/7 store & Tony cluster)
+    this.yaw = 3.95;      // horizontal rotation
+    this.pitch = 0.22;    // vertical rotation
+    this.cameraDistance = 6;
+    this.cameraHeight = 2.2;
+
+    this.keys = {};
+    this.pointerLocked = false;
+    this.obstacles = [];
+
+    this.buildModel();
+    this.setupInput();
+  }
+
+  buildModel() {
+    this.group = new THREE.Group();
+
+    // Body (capsule)
+    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x1a1a22, roughness: 0.6 });
+    this.body = new THREE.Mesh(new THREE.CapsuleGeometry(0.35, 0.9, 4, 8), bodyMat);
+    this.body.position.y = 0.95;
+    this.body.castShadow = true;
+    this.group.add(this.body);
+
+    // Head
+    const headMat = new THREE.MeshStandardMaterial({ color: 0x5a4636 });
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.27, 16, 16), headMat);
+    head.position.y = 1.72;
+    head.castShadow = true;
+    this.group.add(head);
+
+    // Front indicator (so you can see facing direction)
+    const noseMat = new THREE.MeshStandardMaterial({ color: 0xf5a623 });
+    const nose = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.15, 0.3), noseMat);
+    nose.position.set(0, 1.72, 0.25);
+    this.group.add(nose);
+
+    this.group.position.copy(this.position);
+    this.scene.add(this.group);
+  }
+
+  setObstacles(obstacles) {
+    this.obstacles = obstacles;
+  }
+
+  setupInput() {
+    window.addEventListener('keydown', (e) => {
+      this.keys[e.code] = true;
+    });
+    window.addEventListener('keyup', (e) => {
+      this.keys[e.code] = false;
+    });
+
+    // Pointer lock for mouse look
+    this.domElement.addEventListener('click', () => {
+      if (!this.pointerLocked && !this.inputBlocked) {
+        this.domElement.requestPointerLock();
+      }
+    });
+
+    document.addEventListener('pointerlockchange', () => {
+      this.pointerLocked = document.pointerLockElement === this.domElement;
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!this.pointerLocked) return;
+      this.yaw -= e.movementX * 0.0025;
+      this.pitch -= e.movementY * 0.0025;
+      this.pitch = clamp(this.pitch, -0.3, 1.0);
+    });
+  }
+
+  isMoving() {
+    return this.keys['KeyW'] || this.keys['KeyZ'] || this.keys['ArrowUp'] ||
+           this.keys['KeyS'] || this.keys['ArrowDown'] ||
+           this.keys['KeyA'] || this.keys['KeyQ'] || this.keys['ArrowLeft'] ||
+           this.keys['KeyD'] || this.keys['ArrowRight'];
+  }
+
+  update(delta, time) {
+    const blocked = this.inputBlocked;
+
+    // Movement direction relative to camera yaw
+    const forward = new THREE.Vector3(Math.sin(this.yaw), 0, Math.cos(this.yaw));
+    const right = new THREE.Vector3(Math.sin(this.yaw - Math.PI / 2), 0, Math.cos(this.yaw - Math.PI / 2));
+
+    const move = new THREE.Vector3();
+    if (!blocked) {
+      // Forward: W / Z / Up
+      if (this.keys['KeyW'] || this.keys['KeyZ'] || this.keys['ArrowUp']) move.sub(forward);
+      // Backward: S / Down
+      if (this.keys['KeyS'] || this.keys['ArrowDown']) move.add(forward);
+      // Left: A / Q / Left
+      if (this.keys['KeyA'] || this.keys['KeyQ'] || this.keys['ArrowLeft']) move.add(right);
+      // Right: D / Right
+      if (this.keys['KeyD'] || this.keys['ArrowRight']) move.sub(right);
+    }
+
+    const running = this.keys['ShiftLeft'] || this.keys['ShiftRight'];
+    const speed = running ? this.runSpeed : this.walkSpeed;
+
+    if (move.lengthSq() > 0) {
+      move.normalize().multiplyScalar(speed * delta);
+
+      // Try X axis
+      const tryX = this.position.clone();
+      tryX.x += move.x;
+      if (!checkBoxCollision(tryX, this.radius, this.obstacles)) {
+        this.position.x = tryX.x;
+      }
+      // Try Z axis
+      const tryZ = this.position.clone();
+      tryZ.z += move.z;
+      if (!checkBoxCollision(tryZ, this.radius, this.obstacles)) {
+        this.position.z = tryZ.z;
+      }
+
+      // Rotate character to face movement direction
+      const targetAngle = Math.atan2(move.x, move.z);
+      this.group.rotation.y = this.lerpAngle(this.group.rotation.y, targetAngle, 0.2);
+
+      // Bobbing animation
+      this.body.position.y = 0.95 + Math.abs(Math.sin(time * (running ? 14 : 9))) * 0.06;
+    }
+
+    this.group.position.copy(this.position);
+    this.updateCamera();
+  }
+
+  lerpAngle(a, b, t) {
+    let diff = b - a;
+    while (diff > Math.PI) diff -= Math.PI * 2;
+    while (diff < -Math.PI) diff += Math.PI * 2;
+    return a + diff * t;
+  }
+
+  updateCamera() {
+    // Third-person orbit camera behind player
+    const offsetX = Math.sin(this.yaw) * Math.cos(this.pitch) * this.cameraDistance;
+    const offsetZ = Math.cos(this.yaw) * Math.cos(this.pitch) * this.cameraDistance;
+    const offsetY = Math.sin(this.pitch) * this.cameraDistance + this.cameraHeight;
+
+    const desired = new THREE.Vector3(
+      this.position.x + offsetX,
+      this.position.y + offsetY,
+      this.position.z + offsetZ
+    );
+
+    this.camera.position.lerp(desired, 0.15);
+    this.camera.lookAt(
+      this.position.x,
+      this.position.y + 1.5,
+      this.position.z
+    );
+  }
+}
