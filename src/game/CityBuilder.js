@@ -19,6 +19,8 @@ export default class CityBuilder {
     this.buildStreetlights();
     this.buildCars();
     this.buildProps();
+    this.buildTrees();
+    this.buildPlaza();
     this.buildDeliveryZone();
     this.buildShopEntrance();
     this.buildBank();
@@ -257,6 +259,102 @@ export default class CityBuilder {
     const bench = new THREE.Mesh(new THREE.BoxGeometry(2.5, 0.5, 0.6), benchMat);
     bench.position.set(-14, 0.5, 11);
     this.scene.add(bench);
+  }
+
+  createTree(x, z) {
+    const group = new THREE.Group();
+    const trunk = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.18, 0.24, 1.6, 8),
+      new THREE.MeshStandardMaterial({ color: 0x3a2a1a, roughness: 0.9 })
+    );
+    trunk.position.y = 0.8;
+    trunk.castShadow = true;
+    group.add(trunk);
+    const foliage = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(1.1, 0),
+      new THREE.MeshStandardMaterial({ color: 0x1f3a24, roughness: 1, flatShading: true })
+    );
+    foliage.position.y = 2.4;
+    foliage.castShadow = true;
+    group.add(foliage);
+    group.position.set(x, 0, z);
+    this.scene.add(group);
+    this.addObstacle(trunk, 0.1);
+  }
+
+  buildTrees() {
+    const xs = [-35, -25, -5, 5, 25, 35];
+    for (const x of xs) {
+      this.createTree(x, 11);
+      this.createTree(x, -11);
+    }
+    const zs = [-35, -25, 25, 35];
+    for (const z of zs) {
+      this.createTree(11, z);
+      this.createTree(-11, z);
+    }
+  }
+
+  buildPlaza() {
+    const cx = -38, cz = 40;
+
+    // Grass
+    const grass = new THREE.Mesh(
+      new THREE.CircleGeometry(10, 40),
+      new THREE.MeshStandardMaterial({ color: 0x18301c, roughness: 1 })
+    );
+    grass.rotation.x = -Math.PI / 2;
+    grass.position.set(cx, 0.04, cz);
+    this.scene.add(grass);
+    this.minimapObjects.push({ x: cx, z: cz, w: 18, d: 18, color: '#1f3a24' });
+
+    // Fountain
+    const base = new THREE.Mesh(
+      new THREE.CylinderGeometry(2.4, 2.6, 0.6, 20),
+      new THREE.MeshStandardMaterial({ color: 0x444450, roughness: 0.7 })
+    );
+    base.position.set(cx, 0.3, cz);
+    base.castShadow = true;
+    this.scene.add(base);
+    this.addObstacle(base, 0.1);
+
+    const water = new THREE.Mesh(
+      new THREE.CylinderGeometry(2.1, 2.1, 0.3, 20),
+      new THREE.MeshStandardMaterial({ color: 0x2a6a8a, emissive: 0x174a66, emissiveIntensity: 0.5, roughness: 0.2, metalness: 0.4 })
+    );
+    water.position.set(cx, 0.55, cz);
+    this.scene.add(water);
+
+    const spout = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.2, 0.3, 1.6, 12),
+      new THREE.MeshStandardMaterial({ color: 0x555560 })
+    );
+    spout.position.set(cx, 1.3, cz);
+    this.scene.add(spout);
+
+    const light = new THREE.PointLight(0x66aaff, 1, 14);
+    light.position.set(cx, 2.5, cz);
+    this.scene.add(light);
+    this.nightLights.push({ light, base: 1 });
+
+    // Benches around the fountain
+    const benchMat = new THREE.MeshStandardMaterial({ color: 0x33332a, roughness: 0.8 });
+    for (const ang of [0, Math.PI / 2, Math.PI, -Math.PI / 2]) {
+      const bench = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.5, 0.6), benchMat);
+      bench.position.set(cx + Math.cos(ang) * 5, 0.45, cz + Math.sin(ang) * 5);
+      bench.rotation.y = -ang;
+      this.scene.add(bench);
+    }
+
+    // Surrounding trees
+    for (const ang of [0.6, 2.0, 3.6, 5.0]) {
+      this.createTree(cx + Math.cos(ang) * 8.5, cz + Math.sin(ang) * 8.5);
+    }
+
+    // Sign
+    const sign = createTextSprite('PARC VESPUCCI', { color: '#88cc88', fontSize: 30, scale: 0.014 });
+    sign.position.set(cx, 4, cz);
+    this.scene.add(sign);
   }
 
   buildDeliveryZone() {
