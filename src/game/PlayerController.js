@@ -51,9 +51,11 @@ export default class PlayerController {
 
   setupInput() {
     window.addEventListener('keydown', (e) => {
+      if (e.target && e.target.tagName === 'INPUT') return; // ignore while typing in chat
       this.keys[e.code] = true;
     });
     window.addEventListener('keyup', (e) => {
+      if (e.target && e.target.tagName === 'INPUT') return;
       this.keys[e.code] = false;
     });
 

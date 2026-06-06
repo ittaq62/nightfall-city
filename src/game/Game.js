@@ -5,6 +5,7 @@ import NPC from './NPC.js';
 import Vehicle from './Vehicle.js';
 import TrafficSystem from './TrafficSystem.js';
 import OnlinePlayers from './OnlinePlayers.js';
+import Network from './Network.js';
 import HUD from './HUD.js';
 import InventorySystem from './InventorySystem.js';
 import MissionSystem, { jobForRep } from './MissionSystem.js';
@@ -130,10 +131,27 @@ export default class Game {
     // AI traffic cruising the main roads
     this.traffic = new TrafficSystem({ scene: this.scene, player: this.player });
 
-    // Simulated online players (local, no backend)
+    // Simulated online players (local, no backend) - used when no server is reachable
     this.online = new OnlinePlayers({ scene: this.scene, hud: this.hud, count: 5 });
-    const globalTab = document.getElementById('chat-global-tab');
-    if (globalTab) globalTab.textContent = `GLOBAL ● ${this.online.players.length + 1}`;
+
+    // Real networked multiplayer (optional). Falls back to simulated players if the
+    // server isn't running. When connected, the simulated players are hidden.
+    this.networked = false;
+    this.network = new Network({ scene: this.scene, hud: this.hud, name: this.playerState.name });
+    this.network.onConnect = () => {
+      this.networked = true;
+      this.online.setActive(false);
+      this.hud.addChatMessage('Systeme', 'Connecte au serveur multijoueur', 'online');
+      this.updateGlobalCount();
+    };
+    this.network.onDisconnect = () => {
+      this.networked = false;
+      this.online.setActive(true);
+      this.hud.addChatMessage('Systeme', 'Mode hors-ligne (joueurs simules)', 'online');
+      this.updateGlobalCount();
+    };
+    this.network.connect();
+    this.updateGlobalCount();
 
     this.mission = new MissionSystem(this.playerState, this.inventory, this.hud, this.audio);
     this.shop = new ShopSystem(this.playerState, this.inventory, this.hud, this.audio);
@@ -197,10 +215,23 @@ export default class Game {
   setupEvents() {
     window.addEventListener('resize', () => this.onResize());
 
+    const chatInput = document.getElementById('chat-input');
+
     document.addEventListener('keydown', (e) => {
+      // While typing in the chat, let the input handle keys (no game shortcuts)
+      if (document.activeElement === chatInput) return;
+
       // Escape releases pointer
       if (e.code === 'Escape') {
         document.exitPointerLock();
+      }
+      // Enter opens the chat
+      if (e.code === 'Enter') {
+        document.exitPointerLock();
+        this.player.inputBlocked = true;
+        chatInput.focus();
+        e.preventDefault();
+        return;
       }
       // Toggle controls help
       if (e.code === 'KeyH') {
@@ -230,6 +261,22 @@ export default class Game {
         muteBtn.textContent = on ? '🔊' : '🔇';
       };
     }
+
+    // Chat input
+    if (chatInput) {
+      chatInput.addEventListener('keydown', (e) => {
+        e.stopPropagation();
+        if (e.code === 'Enter') {
+          this.sendChat(chatInput.value);
+          chatInput.value = '';
+          chatInput.blur();
+        } else if (e.code === 'Escape') {
+          chatInput.value = '';
+          chatInput.blur();
+        }
+      });
+      chatInput.addEventListener('blur', () => { this.player.inputBlocked = false; });
+    }
   }
 
   useSlot(index, fromPanel = false) {
@@ -258,6 +305,19 @@ export default class Game {
     this.camera.aspect = window.innerWidth / window.innerHeight;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(window.innerWidth, window.innerHeight);
+  }
+
+  updateGlobalCount() {
+    const n = this.networked ? (this.network.remotes.size + 1) : (this.online.players.length + 1);
+    const tab = document.getElementById('chat-global-tab');
+    if (tab) tab.textContent = `GLOBAL ● ${n}`;
+  }
+
+  sendChat(text) {
+    text = (text || '').trim();
+    if (!text) return;
+    this.hud.addChatMessage(this.playerState.name, text, ''); // local echo
+    if (this.networked) this.network.sendChat(text);
   }
 
   resetGame() {
@@ -526,14 +586,25 @@ export default class Game {
       ctx.fillRect(cx2 - 1.5, cz2 - 1.5, 3, 3);
     }
 
-    // Online players
-    ctx.fillStyle = '#66ddff';
-    for (const op of this.online.players) {
-      const ox = (op.pos.x - px) * scale;
-      const oz = (op.pos.z - pz) * scale;
-      ctx.beginPath();
-      ctx.arc(ox, oz, 2.5, 0, Math.PI * 2);
-      ctx.fill();
+    // Online players (real network = green, simulated = cyan)
+    if (this.networked) {
+      ctx.fillStyle = '#7CFC00';
+      for (const r of this.network.remotes.values()) {
+        const ox = (r.model.group.position.x - px) * scale;
+        const oz = (r.model.group.position.z - pz) * scale;
+        ctx.beginPath();
+        ctx.arc(ox, oz, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else {
+      ctx.fillStyle = '#66ddff';
+      for (const op of this.online.players) {
+        const ox = (op.pos.x - px) * scale;
+        const oz = (op.pos.z - pz) * scale;
+        ctx.beginPath();
+        ctx.arc(ox, oz, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
 
     // Player's drivable car
@@ -610,6 +681,16 @@ export default class Game {
     for (const npc of this.npcs) npc.update(this.player.position, delta, time);
     this.traffic.update(delta);
     this.online.update(delta, time);
+    const localMoving = this.mode === 'drive'
+      ? Math.abs(this.vehicle.speed) > 0.5
+      : this.player.isMoving();
+    this.network.update(delta, {
+      x: this.player.position.x,
+      z: this.player.position.z,
+      heading: this.player.group.rotation.y,
+      moving: localMoving,
+    });
+    if (this.networked) this.updateGlobalCount();
     this.city.update(time);
     this.dayNight.update(delta);
     this.weather.update(delta);

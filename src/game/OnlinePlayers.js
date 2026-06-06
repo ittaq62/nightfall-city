@@ -33,6 +33,7 @@ export default class OnlinePlayers {
 
     this.chatTimer = 0;
     this.nextChat = 5;
+    this.active = true;
 
     for (let i = 0; i < count; i++) {
       const start = this.waypoints[Math.floor(Math.random() * this.waypoints.length)];
@@ -59,7 +60,13 @@ export default class OnlinePlayers {
     return new THREE.Vector3(wp.x, 0, wp.z);
   }
 
+  setActive(v) {
+    this.active = v;
+    for (const p of this.players) p.model.group.visible = v;
+  }
+
   update(delta, time) {
+    if (!this.active) return;
     for (const p of this.players) {
       const dx = p.target.x - p.pos.x;
       const dz = p.target.z - p.pos.z;
