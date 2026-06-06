@@ -399,7 +399,7 @@ export default class Game {
     const time = this.clock.elapsedTime;
 
     this.player.update(delta, time);
-    this.tony.update(this.player.position, time);
+    this.tony.update(this.player.position, delta, time);
     this.city.update(time);
     this.dayNight.update(delta);
 

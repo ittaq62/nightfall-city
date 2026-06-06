@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { checkBoxCollision, clamp } from './Utils.js';
+import CharacterModel from './CharacterModel.js';
 
 export default class PlayerController {
   constructor(scene, camera, domElement) {
@@ -32,28 +33,14 @@ export default class PlayerController {
   }
 
   buildModel() {
-    this.group = new THREE.Group();
-
-    // Body (capsule)
-    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x1a1a22, roughness: 0.6 });
-    this.body = new THREE.Mesh(new THREE.CapsuleGeometry(0.35, 0.9, 4, 8), bodyMat);
-    this.body.position.y = 0.95;
-    this.body.castShadow = true;
-    this.group.add(this.body);
-
-    // Head
-    const headMat = new THREE.MeshStandardMaterial({ color: 0x5a4636 });
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.27, 16, 16), headMat);
-    head.position.y = 1.72;
-    head.castShadow = true;
-    this.group.add(head);
-
-    // Front indicator (so you can see facing direction)
-    const noseMat = new THREE.MeshStandardMaterial({ color: 0xf5a623 });
-    const nose = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.15, 0.3), noseMat);
-    nose.position.set(0, 1.72, 0.25);
-    this.group.add(nose);
-
+    // Articulated humanoid (hoodie look)
+    this.character = new CharacterModel({
+      skin: 0x6b4f3a,
+      outfit: 0x232330,
+      pants: 0x15151c,
+      hair: 0x0d0d0d,
+    });
+    this.group = this.character.group;
     this.group.position.copy(this.position);
     this.scene.add(this.group);
   }
@@ -138,9 +125,6 @@ export default class PlayerController {
       const targetAngle = Math.atan2(move.x, move.z);
       this.group.rotation.y = this.lerpAngle(this.group.rotation.y, targetAngle, 0.2);
 
-      // Bobbing animation
-      this.body.position.y = 0.95 + Math.abs(Math.sin(time * (running ? 14 : 9))) * 0.06;
-
       // Footstep sounds, paced with the gait
       this.stepTimer += delta;
       const stepInterval = running ? 0.3 : 0.45;
@@ -151,6 +135,11 @@ export default class PlayerController {
     } else {
       this.stepTimer = 0.4; // ready to step almost immediately when starting to move
     }
+
+    // Animate the articulated character
+    const moving = move.lengthSq() > 1e-6;
+    const speed01 = moving ? (running ? 1 : 0.5) : 0;
+    this.character.update(delta, speed01);
 
     this.group.position.copy(this.position);
     this.updateCamera();
