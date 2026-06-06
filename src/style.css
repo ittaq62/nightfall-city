@@ -1,0 +1,410 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  overflow: hidden;
+  background: #000;
+  font-family: 'Segoe UI', 'Arial', sans-serif;
+  color: #fff;
+  cursor: default;
+}
+
+#game-container {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+#game-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.hidden { display: none !important; }
+
+/* Start overlay */
+#start-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  cursor: pointer;
+}
+.start-content {
+  text-align: center;
+}
+.start-content h1 {
+  font-size: 4rem;
+  font-weight: 900;
+  letter-spacing: 0.3em;
+  color: #f5a623;
+  text-shadow: 0 0 40px rgba(245,166,35,0.5);
+  margin-bottom: 1rem;
+}
+.start-content p {
+  font-size: 1.2rem;
+  color: #aaa;
+  animation: pulse 2s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* Player HUD - top left */
+#hud-player {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  display: flex;
+  gap: 12px;
+  background: rgba(0,0,0,0.7);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 12px 16px;
+  backdrop-filter: blur(10px);
+  z-index: 10;
+}
+.player-avatar {
+  width: 50px;
+  height: 50px;
+  background: linear-gradient(135deg, #333, #555);
+  border-radius: 6px;
+  border: 2px solid #f5a623;
+}
+.player-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.player-name {
+  font-size: 1rem;
+  font-weight: 700;
+}
+.player-money {
+  font-size: 0.95rem;
+  color: #4caf50;
+  font-weight: 600;
+}
+.player-stats {
+  display: flex;
+  gap: 12px;
+  font-size: 0.75rem;
+  color: #aaa;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.player-stats strong {
+  color: #fff;
+}
+.player-job {
+  color: #f5a623 !important;
+  font-weight: 600;
+}
+
+/* Needs bars */
+#hud-needs {
+  position: absolute;
+  top: 110px;
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(0,0,0,0.6);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  padding: 10px 14px;
+  backdrop-filter: blur(10px);
+  z-index: 10;
+}
+.need-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+}
+.need-icon { font-size: 0.9rem; width: 20px; text-align: center; }
+.need-label { width: 55px; color: #ccc; }
+.need-bar {
+  width: 120px;
+  height: 8px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.need-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+.need-fill.hunger { background: linear-gradient(90deg, #ff6b35, #f5a623); }
+.need-fill.energy { background: linear-gradient(90deg, #2196f3, #42a5f5); }
+.need-fill.hygiene { background: linear-gradient(90deg, #4caf50, #66bb6a); }
+.need-fill.stress { background: linear-gradient(90deg, #9c27b0, #ba68c8); }
+.need-value { font-size: 0.75rem; color: #aaa; width: 30px; text-align: right; }
+
+/* Mission notification */
+#hud-mission {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(0,0,0,0.8);
+  border: 1px solid rgba(245,166,35,0.4);
+  border-radius: 8px;
+  padding: 12px 20px;
+  backdrop-filter: blur(10px);
+  z-index: 10;
+}
+.mission-icon {
+  font-size: 1.5rem;
+  color: #f5a623;
+  background: rgba(245,166,35,0.2);
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mission-title { font-weight: 700; font-size: 0.95rem; }
+.mission-desc { font-size: 0.8rem; color: #ccc; margin-top: 2px; }
+
+/* Interaction prompt */
+#hud-interact {
+  position: absolute;
+  top: 55%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.75);
+  border: 1px solid rgba(245,166,35,0.5);
+  border-radius: 6px;
+  padding: 10px 24px;
+  font-size: 0.9rem;
+  z-index: 10;
+}
+#hud-interact span { color: #f5a623; }
+
+/* Dialog box */
+#hud-dialog {
+  position: absolute;
+  bottom: 120px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 500px;
+  max-width: 90vw;
+  background: rgba(10,10,15,0.92);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 10px;
+  padding: 20px;
+  backdrop-filter: blur(15px);
+  z-index: 20;
+}
+.dialog-name {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: #f5a623;
+  margin-bottom: 8px;
+}
+.dialog-text {
+  font-size: 0.9rem;
+  color: #ddd;
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+.dialog-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+.dialog-actions button {
+  padding: 8px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+#dialog-accept {
+  background: #f5a623;
+  color: #000;
+}
+#dialog-accept:hover { background: #ffb84d; }
+#dialog-close {
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+}
+#dialog-close:hover { background: rgba(255,255,255,0.2); }
+
+/* Notification */
+#hud-notification {
+  position: absolute;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(76,175,80,0.9);
+  border-radius: 6px;
+  padding: 10px 24px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  z-index: 30;
+  animation: notifSlide 0.3s ease;
+}
+@keyframes notifSlide {
+  from { opacity: 0; transform: translateX(-50%) translateY(-10px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* Minimap */
+#hud-minimap {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  z-index: 10;
+}
+#minimap-canvas {
+  width: 180px;
+  height: 180px;
+  border-radius: 10px;
+  border: 2px solid rgba(255,255,255,0.15);
+  background: rgba(0,0,0,0.6);
+}
+.minimap-location {
+  margin-top: 6px;
+}
+.location-district {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #f5a623;
+  letter-spacing: 0.1em;
+}
+.location-street {
+  font-size: 0.75rem;
+  color: #aaa;
+}
+
+/* Quick inventory */
+#hud-inventory {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 10;
+}
+.inv-slot {
+  width: 60px;
+  height: 60px;
+  background: rgba(0,0,0,0.65);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.inv-slot:hover { border-color: rgba(245,166,35,0.5); }
+.inv-item {
+  font-size: 1.6rem;
+  text-align: center;
+}
+.inv-key {
+  position: absolute;
+  top: 3px;
+  left: 6px;
+  font-size: 0.65rem;
+  color: rgba(255,255,255,0.4);
+  font-weight: 600;
+}
+
+/* Chat */
+#hud-chat {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 300px;
+  background: rgba(0,0,0,0.6);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  z-index: 10;
+}
+.chat-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  padding: 8px 12px;
+}
+.chat-tab {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #666;
+  cursor: pointer;
+  padding: 0 10px;
+}
+.chat-tab.active { color: #f5a623; }
+.chat-messages {
+  height: 120px;
+  overflow-y: auto;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.chat-messages::-webkit-scrollbar { width: 4px; }
+.chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
+.chat-msg {
+  font-size: 0.8rem;
+  color: #ccc;
+}
+.chat-msg .chat-author {
+  font-weight: 600;
+  margin-right: 4px;
+}
+.chat-msg .chat-author.chris { color: #42a5f5; }
+.chat-msg .chat-author.emma { color: #ef5350; }
+.chat-msg .chat-author.tony { color: #f5a623; }
+.chat-msg .chat-author.lucas { color: #66bb6a; }
+.chat-input-row {
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding: 6px 10px;
+}
+#chat-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #888;
+  font-size: 0.8rem;
+  font-family: inherit;
+}
+
+/* Controls help */
+#hud-controls {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.85);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 10px;
+  padding: 24px 32px;
+  font-size: 0.9rem;
+  line-height: 2;
+  z-index: 50;
+  color: #ccc;
+}
