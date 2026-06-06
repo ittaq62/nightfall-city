@@ -391,6 +391,18 @@ body {
   font-size: 0.75rem;
   color: #aaa;
 }
+.minimap-clock {
+  position: absolute;
+  bottom: 30px;
+  right: 8px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  background: rgba(0,0,0,0.5);
+  padding: 2px 8px;
+  border-radius: 5px;
+  letter-spacing: 0.05em;
+}
 
 /* Quick inventory */
 #hud-inventory {

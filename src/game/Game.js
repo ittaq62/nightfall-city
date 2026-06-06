@@ -8,6 +8,7 @@ import MissionSystem, { MissionState } from './MissionSystem.js';
 import ShopSystem from './ShopSystem.js';
 import AudioSystem from './AudioSystem.js';
 import SaveSystem from './SaveSystem.js';
+import DayNightCycle from './DayNightCycle.js';
 import { distance2D, clamp } from './Utils.js';
 
 export default class Game {
@@ -62,25 +63,26 @@ export default class Game {
     );
     this.camera.position.set(0, 4, 12);
 
-    // Lighting - night ambiance (dark but clearly readable)
-    const ambient = new THREE.AmbientLight(0x4a4a66, 1.1);
-    this.scene.add(ambient);
+    // Lighting - night ambiance (dark but clearly readable).
+    // References are kept so the DayNightCycle can animate them.
+    this.ambient = new THREE.AmbientLight(0x4a4a66, 1.1);
+    this.scene.add(this.ambient);
 
-    const hemi = new THREE.HemisphereLight(0x5566aa, 0x141420, 0.9);
-    this.scene.add(hemi);
+    this.hemi = new THREE.HemisphereLight(0x5566aa, 0x141420, 0.9);
+    this.scene.add(this.hemi);
 
-    // Moonlight directional
-    const moon = new THREE.DirectionalLight(0x8899cc, 0.9);
-    moon.position.set(-30, 50, -20);
-    moon.castShadow = true;
-    moon.shadow.mapSize.set(2048, 2048);
-    moon.shadow.camera.near = 1;
-    moon.shadow.camera.far = 150;
-    moon.shadow.camera.left = -70;
-    moon.shadow.camera.right = 70;
-    moon.shadow.camera.top = 70;
-    moon.shadow.camera.bottom = -70;
-    this.scene.add(moon);
+    // Sun / moon directional light
+    this.sun = new THREE.DirectionalLight(0x8899cc, 0.9);
+    this.sun.position.set(-30, 50, -20);
+    this.sun.castShadow = true;
+    this.sun.shadow.mapSize.set(2048, 2048);
+    this.sun.shadow.camera.near = 1;
+    this.sun.shadow.camera.far = 200;
+    this.sun.shadow.camera.left = -70;
+    this.sun.shadow.camera.right = 70;
+    this.sun.shadow.camera.top = 70;
+    this.sun.shadow.camera.bottom = -70;
+    this.scene.add(this.sun);
   }
 
   initSystems() {
@@ -103,6 +105,16 @@ export default class Game {
     this.mission = new MissionSystem(this.playerState, this.inventory, this.hud);
     this.shop = new ShopSystem(this.playerState, this.inventory, this.hud, this.audio);
     this.shop.onClose = () => { this.player.inputBlocked = false; };
+
+    // Day / night cycle
+    this.dayNight = new DayNightCycle({
+      scene: this.scene,
+      sun: this.sun,
+      ambient: this.ambient,
+      hemi: this.hemi,
+      nightLights: this.city.nightLights,
+      hud: this.hud,
+    });
 
     // Save / load progress
     this.savingEnabled = true;
@@ -389,6 +401,7 @@ export default class Game {
     this.player.update(delta, time);
     this.tony.update(this.player.position, time);
     this.city.update(time);
+    this.dayNight.update(delta);
 
     this.handleInteractions();
     this.updateNeeds(delta);

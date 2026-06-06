@@ -94,6 +94,9 @@ nightfall-city/
   mission et position sont conservés au rechargement. Bouton *Nouvelle partie* pour repartir.
 - **Sons synthétisés** (Web Audio, aucun fichier externe) : ambiance nocturne, pas,
   clics d'interface, jingle de mission. Bouton 🔊 pour couper/activer le son.
+- **Cycle jour/nuit dynamique** : le ciel, le brouillard, la lumière du soleil/lune et
+  l'ambiance évoluent en continu ; les lampadaires et néons s'allument à la tombée de la
+  nuit. Horloge affichée sous la mini-carte (le jeu démarre à 21:00).
 
 ---
 
@@ -102,7 +105,7 @@ nightfall-city/
 - Plusieurs PNJ et missions enchaînées.
 - Modèles 3D (GLTF) à la place des capsules.
 - Panneau d'inventaire détaillé (touche `I`).
-- Cycle jour/nuit.
+- Météo (pluie, brouillard variable).
 - Multijoueur léger (WebSocket) pour le RP.
 
 ---

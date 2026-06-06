@@ -28,6 +28,14 @@ export default class HUD {
     }
   }
 
+  updateClock(hour) {
+    const el = document.getElementById('location-time');
+    if (!el) return;
+    const hh = Math.floor(hour);
+    const mm = Math.floor((hour - hh) * 60);
+    el.textContent = `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+  }
+
   showInteractPrompt(text) {
     const el = document.getElementById('hud-interact');
     document.getElementById('interact-text').textContent = text;

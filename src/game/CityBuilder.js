@@ -6,6 +6,7 @@ export default class CityBuilder {
     this.scene = scene;
     this.obstacles = []; // Array of THREE.Box3
     this.minimapObjects = []; // For minimap rendering: {x, z, w, d, color}
+    this.nightLights = []; // Lights that turn on at night: {light, base}
     this.deliveryZone = null;
   }
 
@@ -117,6 +118,7 @@ export default class CityBuilder {
       const signLight = new THREE.PointLight(new THREE.Color(signColor), 2.5, 22);
       signLight.position.set(x, h * 0.8, z + d / 2 + 1);
       this.scene.add(signLight);
+      this.nightLights.push({ light: signLight, base: 2.5 });
     }
 
     return building;
@@ -190,6 +192,7 @@ export default class CityBuilder {
       const light = new THREE.PointLight(0xffcc66, 1.2, 16, 2);
       light.position.set(x, 5.8, z);
       this.scene.add(light);
+      this.nightLights.push({ light, base: 1.2 });
     }
   }
 

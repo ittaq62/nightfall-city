@@ -15,6 +15,7 @@ export default class SaveSystem {
       mission: g.mission.state,
       pos: { x: g.player.position.x, z: g.player.position.z },
       yaw: g.player.yaw,
+      dayTime: g.dayNight ? g.dayNight.time : undefined,
     };
     try {
       localStorage.setItem(SAVE_KEY, JSON.stringify(data));
@@ -39,6 +40,7 @@ export default class SaveSystem {
       if (data.mission) g.mission.state = data.mission;
       if (data.pos) g.player.position.set(data.pos.x, 0, data.pos.z);
       if (typeof data.yaw === 'number') g.player.yaw = data.yaw;
+      if (typeof data.dayTime === 'number' && g.dayNight) g.dayNight.time = data.dayTime;
       return true;
     } catch (e) {
       return false;
