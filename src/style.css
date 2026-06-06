@@ -53,6 +53,18 @@ body {
   color: #aaa;
   animation: pulse 2s ease-in-out infinite;
 }
+#btn-newgame {
+  margin-top: 24px;
+  padding: 8px 22px;
+  background: transparent;
+  border: 1px solid rgba(245,166,35,0.5);
+  color: #f5a623;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+#btn-newgame:hover { background: rgba(245,166,35,0.15); }
 @keyframes pulse {
   0%, 100% { opacity: 0.5; }
   50% { opacity: 1; }
@@ -478,6 +490,24 @@ body {
   font-size: 0.8rem;
   font-family: inherit;
 }
+
+/* Sound toggle button */
+#btn-mute {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  font-size: 1.2rem;
+  cursor: pointer;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+}
+#btn-mute:hover { border-color: rgba(245,166,35,0.5); }
 
 /* Controls help */
 #hud-controls {

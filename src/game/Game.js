@@ -6,6 +6,8 @@ import HUD from './HUD.js';
 import InventorySystem from './InventorySystem.js';
 import MissionSystem, { MissionState } from './MissionSystem.js';
 import ShopSystem from './ShopSystem.js';
+import AudioSystem from './AudioSystem.js';
+import SaveSystem from './SaveSystem.js';
 import { distance2D, clamp } from './Utils.js';
 
 export default class Game {
@@ -95,13 +97,29 @@ export default class Game {
 
     // HUD + systems
     this.hud = new HUD();
+    this.audio = new AudioSystem();
+    this.player.audio = this.audio;
     this.inventory = new InventorySystem();
     this.mission = new MissionSystem(this.playerState, this.inventory, this.hud);
-    this.shop = new ShopSystem(this.playerState, this.inventory, this.hud);
+    this.shop = new ShopSystem(this.playerState, this.inventory, this.hud, this.audio);
     this.shop.onClose = () => { this.player.inputBlocked = false; };
+
+    // Save / load progress
+    this.savingEnabled = true;
+    this.save = new SaveSystem(this);
+    if (this.save.load()) {
+      this.mission.updateMissionHUD();
+      this.inventory.updateHUD();
+      this.player.group.position.copy(this.player.position);
+      setTimeout(() => this.hud.showNotification('Partie chargee'), 500);
+    }
 
     this.hud.updatePlayerInfo(this.playerState);
     this.hud.updateNeeds(this.needs);
+
+    // Auto-save every 8 seconds and before leaving the page
+    this.autoSaveTimer = 0;
+    window.addEventListener('beforeunload', () => this.save.save());
 
     // Minimap setup
     this.minimapCanvas = document.getElementById('minimap-canvas');
@@ -125,12 +143,25 @@ export default class Game {
       if (e.code === 'KeyH') {
         document.getElementById('hud-controls').classList.toggle('hidden');
       }
+      // Toggle minimap
+      if (e.code === 'KeyM') {
+        document.getElementById('hud-minimap').classList.toggle('hidden');
+      }
       // Use inventory item with number keys 1-5
       if (e.code.startsWith('Digit') && !e.repeat) {
         const n = parseInt(e.code.slice(5), 10);
         if (n >= 1 && n <= 5) this.useSlot(n - 1);
       }
     });
+
+    // Mute / unmute button
+    const muteBtn = document.getElementById('btn-mute');
+    if (muteBtn) {
+      muteBtn.onclick = () => {
+        const on = this.audio.toggle();
+        muteBtn.textContent = on ? '🔊' : '🔇';
+      };
+    }
   }
 
   useSlot(index) {
@@ -149,6 +180,8 @@ export default class Game {
       parts.push(`${key} ${sign}${effects[key]}`);
     }
     this.hud.updateNeeds(this.needs);
+    this.audio.consume();
+    this.save.save();
     this.hud.showNotification(`${result.def.name} utilise (${parts.join(', ')})`);
   }
 
@@ -156,6 +189,13 @@ export default class Game {
     this.camera.aspect = window.innerWidth / window.innerHeight;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(window.innerWidth, window.innerHeight);
+  }
+
+  resetGame() {
+    // Disable saving so the beforeunload handler can't re-write the cleared save
+    this.savingEnabled = false;
+    this.save.clear();
+    location.reload();
   }
 
   handleInteractions() {
@@ -187,6 +227,8 @@ export default class Game {
       this.hud.showInteractPrompt('Appuie sur E pour livrer le colis');
       if (ePressed) {
         this.mission.completeMission();
+        this.audio.success();
+        this.save.save();
         this.hud.addChatMessage('Systeme', 'Colis livre avec succes !', 'tony');
       }
     }
@@ -223,6 +265,8 @@ export default class Game {
       'Salut ! J\'ai besoin d\'un livreur. Va deposer ce colis au depot central, la-bas au nord. Tu seras paye 150$ et ta reputation montera. Ca te dit ?',
       () => {
         this.mission.acceptMission();
+        this.audio.click();
+        this.save.save();
         this.hud.showNotification('Mission acceptee : Livrer le colis au depot central');
         this.hud.addChatMessage('Tony', 'Parfait ! Le depot est au nord.', 'tony');
       },
@@ -245,6 +289,13 @@ export default class Game {
     if (this.needsTimer > 0.5) {
       this.hud.updateNeeds(this.needs);
       this.needsTimer = 0;
+    }
+
+    // Auto-save every 8s
+    this.autoSaveTimer += delta;
+    if (this.autoSaveTimer > 8) {
+      this.save.save();
+      this.autoSaveTimer = 0;
     }
   }
 

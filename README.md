@@ -38,8 +38,11 @@ npm run preview
 | Souris | Tourner la caméra |
 | `E` | Interagir (parler / livrer / entrer dans le magasin) |
 | `1` à `5` | Utiliser l'objet du slot correspondant |
+| `M` | Afficher / cacher la mini-carte |
 | `H` | Afficher / cacher l'aide |
 | `Échap` | Libérer la souris |
+
+> 🔊 Bouton son en haut à droite · « Nouvelle partie » sur l'écran d'accueil pour repartir de zéro.
 
 ---
 
@@ -86,16 +89,20 @@ nightfall-city/
     barres de besoins critiques clignotent en rouge.
 - **HUD complet** : profil (nom, argent, réputation, métier), barres de besoins
   (faim, énergie, hygiène, stress) qui baissent avec le temps, mission active,
-  minimap stylisée, inventaire rapide (5 slots), chat RP factice.
+  minimap stylisée (basculable avec `M`), inventaire rapide (5 slots), chat RP factice.
+- **Sauvegarde automatique** (localStorage) : argent, réputation, besoins, inventaire,
+  mission et position sont conservés au rechargement. Bouton *Nouvelle partie* pour repartir.
+- **Sons synthétisés** (Web Audio, aucun fichier externe) : ambiance nocturne, pas,
+  clics d'interface, jingle de mission. Bouton 🔊 pour couper/activer le son.
 
 ---
 
 ## 🔭 Prochaines améliorations possibles
 
 - Plusieurs PNJ et missions enchaînées.
-- Sons et musique d'ambiance.
 - Modèles 3D (GLTF) à la place des capsules.
-- Sauvegarde locale (localStorage).
+- Panneau d'inventaire détaillé (touche `I`).
+- Cycle jour/nuit.
 - Multijoueur léger (WebSocket) pour le RP.
 
 ---
