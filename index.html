@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nightfall City</title>
+  <link rel="stylesheet" href="/src/style.css" />
+</head>
+<body>
+  <div id="game-container">
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Click to play overlay -->
+    <div id="start-overlay">
+      <div class="start-content">
+        <h1>NIGHTFALL CITY</h1>
+        <p>Cliquez pour jouer</p>
+      </div>
+    </div>
+
+    <!-- HUD: Top left - Player info -->
+    <div id="hud-player">
+      <div class="player-avatar"></div>
+      <div class="player-info">
+        <div class="player-name" id="player-name">Alex Mercer</div>
+        <div class="player-money" id="player-money">$2,450</div>
+        <div class="player-stats">
+          <span>REPUTATION: <strong id="player-rep">12</strong></span>
+          <span class="player-job" id="player-job">CITOYEN</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- HUD: Needs bars -->
+    <div id="hud-needs">
+      <div class="need-row">
+        <span class="need-icon">🍔</span>
+        <span class="need-label">Faim</span>
+        <div class="need-bar"><div class="need-fill hunger" id="bar-hunger" style="width:72%"></div></div>
+        <span class="need-value" id="val-hunger">72%</span>
+      </div>
+      <div class="need-row">
+        <span class="need-icon">⚡</span>
+        <span class="need-label">Energie</span>
+        <div class="need-bar"><div class="need-fill energy" id="bar-energy" style="width:64%"></div></div>
+        <span class="need-value" id="val-energy">64%</span>
+      </div>
+      <div class="need-row">
+        <span class="need-icon">🧼</span>
+        <span class="need-label">Hygiene</span>
+        <div class="need-bar"><div class="need-fill hygiene" id="bar-hygiene" style="width:81%"></div></div>
+        <span class="need-value" id="val-hygiene">81%</span>
+      </div>
+      <div class="need-row">
+        <span class="need-icon">💜</span>
+        <span class="need-label">Stress</span>
+        <div class="need-bar"><div class="need-fill stress" id="bar-stress" style="width:24%"></div></div>
+        <span class="need-value" id="val-stress">24%</span>
+      </div>
+    </div>
+
+    <!-- HUD: Mission notification -->
+    <div id="hud-mission" class="hidden">
+      <div class="mission-icon">⚠</div>
+      <div class="mission-text">
+        <div class="mission-title" id="mission-title">Mission disponible !</div>
+        <div class="mission-desc" id="mission-desc"></div>
+      </div>
+    </div>
+
+    <!-- HUD: Interaction prompt -->
+    <div id="hud-interact" class="hidden">
+      <span id="interact-text">Appuie sur E pour parler</span>
+    </div>
+
+    <!-- HUD: Dialog box -->
+    <div id="hud-dialog" class="hidden">
+      <div class="dialog-name" id="dialog-name">Tony</div>
+      <div class="dialog-text" id="dialog-text"></div>
+      <div class="dialog-actions">
+        <button id="dialog-accept">Accepter</button>
+        <button id="dialog-close">Fermer</button>
+      </div>
+    </div>
+
+    <!-- HUD: Notification popup -->
+    <div id="hud-notification" class="hidden">
+      <span id="notification-text"></span>
+    </div>
+
+    <!-- HUD: Bottom left - Minimap -->
+    <div id="hud-minimap">
+      <canvas id="minimap-canvas" width="180" height="180"></canvas>
+      <div class="minimap-location">
+        <div class="location-district">DOWNTOWN</div>
+        <div class="location-street">Vespucci Blvd</div>
+      </div>
+    </div>
+
+    <!-- HUD: Bottom center - Quick inventory -->
+    <div id="hud-inventory">
+      <div class="inv-slot" data-slot="0"><div class="inv-item" id="inv-0"></div><span class="inv-key">1</span></div>
+      <div class="inv-slot" data-slot="1"><div class="inv-item" id="inv-1"></div><span class="inv-key">2</span></div>
+      <div class="inv-slot" data-slot="2"><div class="inv-item" id="inv-2"></div><span class="inv-key">3</span></div>
+      <div class="inv-slot" data-slot="3"><div class="inv-item" id="inv-3"></div><span class="inv-key">4</span></div>
+      <div class="inv-slot" data-slot="4"><div class="inv-item" id="inv-4"></div><span class="inv-key">5</span></div>
+    </div>
+
+    <!-- HUD: Bottom right - RP Chat -->
+    <div id="hud-chat">
+      <div class="chat-tabs">
+        <span class="chat-tab active">GLOBAL●</span>
+        <span class="chat-tab">PROXIMITE</span>
+      </div>
+      <div class="chat-messages" id="chat-messages"></div>
+      <div class="chat-input-row">
+        <input type="text" id="chat-input" placeholder="Appuie sur Entree pour discuter..." disabled />
+      </div>
+    </div>
+
+    <!-- HUD: Controls help -->
+    <div id="hud-controls" class="hidden">
+      <div>ZQSD / WASD : Se deplacer</div>
+      <div>Shift : Courir</div>
+      <div>Souris : Camera</div>
+      <div>E : Interagir</div>
+      <div>Echap : Liberer la souris</div>
+    </div>
+  </div>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
