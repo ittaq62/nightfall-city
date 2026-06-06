@@ -63,7 +63,8 @@ nightfall-city/
 │   │   ├── CityBuilder.js      # Construction de la ville (immeubles, rues, néons)
 │   │   ├── NPC.js              # PNJ (Tony, Maria, Vince) + proximité
 │   │   ├── Vehicle.js          # Voiture conduisible (physique arcade)
-│   │   ├── TrafficSystem.js    # Circulation IA sur les routes
+│   │   ├── TrafficSystem.js    # Circulation IA + feux de circulation
+│   │   ├── OnlinePlayers.js    # Joueurs en ligne simulés (local)
 │   │   ├── Textures.js         # Textures procédurales (canvas)
 │   │   ├── MissionSystem.js    # Missions multiples, réputation, métiers
 │   │   ├── InventorySystem.js  # Registre d'objets + slots du HUD
@@ -96,12 +97,14 @@ nightfall-city/
 - **Voiture conduisible** : approche la voiture (cercle bleu), `E` pour monter, conduis
   avec ZQSD (physique arcade : accélération, direction, freinage, collisions),
   compteur de vitesse + son moteur, `E` pour sortir.
-- **Circulation IA** : des voitures roulent en continu sur les routes (visibles aussi
-  sur la mini-carte) et ralentissent si tu leur coupes la route.
+- **Circulation IA & feux** : des voitures roulent en continu sur les routes, **s'arrêtent
+  aux feux rouges** à l'intersection, et ralentissent si tu leur coupes la route.
+- **Joueurs en ligne simulés** : d'autres « joueurs » nommés circulent en ville, tchattent
+  en RP et apparaissent sur la mini-carte — ambiance serveur peuplé, **sans backend**.
 - **Banque & loyer** : entre dans la *Banque de Nightfall* (`E`) pour déposer/retirer
   ton argent ; un **loyer** est prélevé chaque matin (sur le liquide puis l'épargne).
-- **Textures procédurales** : bitume, béton et sol générés au canvas (sans fichier image)
-  pour un rendu plus riche.
+- **Textures procédurales** : bitume, béton, sol et **façades d'immeubles avec fenêtres
+  éclairées** générés au canvas (sans fichier image) pour un rendu plus riche.
 - **Boucle de vie (type Sims)** :
   - **Magasin 24/7 fonctionnel** : entre dans le *24/7 City Mart* (`E`), achète
     burger, sandwich, eau, café, savon avec ton argent.
@@ -132,11 +135,11 @@ nightfall-city/
 
 ## 🔭 Prochaines améliorations possibles
 
-- Modèles GLTF importés + textures haute qualité.
-- Feux de circulation et virages pour l'IA.
-- Plus de métiers et d'activités économiques.
-- Multijoueur léger (WebSocket) — nécessiterait un petit backend (hors périmètre V1).
+- Modèles GLTF importés (vrais personnages riggés).
+- Virages de l'IA aux intersections.
+- Vrai multijoueur en réseau (WebSocket + petit backend Node) — sortirait du
+  périmètre « tout en local » de cette V1.
 
 ---
 
-*Prototype — version 0.4.0*
+*Prototype — version 0.5.0*
