@@ -57,7 +57,7 @@ automatiquement sur les joueurs simulés.
 | `I` | Ouvrir / fermer l'inventaire détaillé |
 | `M` | Afficher / cacher la mini-carte |
 | `H` | Afficher / cacher l'aide |
-| `Échap` | Libérer la souris |
+| `Échap` | Menu pause (volume, reprendre, nouvelle partie) |
 
 > 🔊 Bouton son en haut à droite · « Nouvelle partie » sur l'écran d'accueil pour repartir de zéro.
 
@@ -119,8 +119,13 @@ nightfall-city/
 - **Circulation IA & feux** : des voitures roulent en continu sur les routes, **s'arrêtent
   aux feux rouges** à l'intersection, et ralentissent si tu leur coupes la route.
 - **Multijoueur en réseau** (avec `npm run server`) : les vrais joueurs connectés se voient,
-  bougent et tchattent en temps réel (WebSocket). **Repli automatique** sur des joueurs
-  simulés si aucun serveur n'est lancé. Chat interactif (touche `Entrée`).
+  bougent (**à pied ou en voiture**) et tchattent en temps réel (WebSocket). **Repli automatique**
+  sur des joueurs simulés si aucun serveur n'est lancé. Chat interactif (touche `Entrée`).
+- **Nom de joueur personnalisable** sur l'écran d'accueil (utilisé dans le profil et en ligne).
+- **Menu pause** (`Échap`) avec réglage du volume (mémorisé), aide et nouvelle partie.
+- **Parc Vespucci** : place avec fontaine, bancs et arbres ; arbres le long des avenues.
+- **Solde bancaire** affiché dans le HUD ; les fenêtres des immeubles s'illuminent la nuit
+  et s'atténuent le jour.
 - **Banque & loyer** : entre dans la *Banque de Nightfall* (`E`) pour déposer/retirer
   ton argent ; un **loyer** est prélevé chaque matin (sur le liquide puis l'épargne).
 - **Textures procédurales** : bitume, béton, sol et **façades d'immeubles avec fenêtres
@@ -162,4 +167,4 @@ nightfall-city/
 
 ---
 
-*Prototype — version 0.6.0*
+*Prototype — version 0.7.0*
