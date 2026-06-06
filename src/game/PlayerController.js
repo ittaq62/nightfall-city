@@ -24,6 +24,8 @@ export default class PlayerController {
     this.keys = {};
     this.pointerLocked = false;
     this.obstacles = [];
+    this.audio = null;
+    this.stepTimer = 0;
 
     this.buildModel();
     this.setupInput();
@@ -138,6 +140,16 @@ export default class PlayerController {
 
       // Bobbing animation
       this.body.position.y = 0.95 + Math.abs(Math.sin(time * (running ? 14 : 9))) * 0.06;
+
+      // Footstep sounds, paced with the gait
+      this.stepTimer += delta;
+      const stepInterval = running ? 0.3 : 0.45;
+      if (this.stepTimer >= stepInterval) {
+        if (this.audio) this.audio.footstep();
+        this.stepTimer = 0;
+      }
+    } else {
+      this.stepTimer = 0.4; // ready to step almost immediately when starting to move
     }
 
     this.group.position.copy(this.position);

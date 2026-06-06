@@ -4,10 +4,11 @@ import { ITEMS } from './InventorySystem.js';
 const CATALOG = ['burger', 'sandwich', 'eau', 'cafe', 'savon'];
 
 export default class ShopSystem {
-  constructor(playerState, inventory, hud) {
+  constructor(playerState, inventory, hud, audio = null) {
     this.playerState = playerState;
     this.inventory = inventory;
     this.hud = hud;
+    this.audio = audio;
     this.isOpen = false;
     this.onClose = null;
 
@@ -54,6 +55,7 @@ export default class ShopSystem {
     this.inventory.addItem(id);
     this.hud.updatePlayerInfo(this.playerState);
     this.updateMoney();
+    if (this.audio) this.audio.buy();
     this.hud.showNotification(`${def.name} achete (-$${def.price})`);
   }
 
