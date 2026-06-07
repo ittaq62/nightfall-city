@@ -139,6 +139,22 @@ export default class TrafficSystem {
     }
   }
 
+  laneHeading(axis, dir) {
+    if (axis === 'x') return dir > 0 ? Math.PI / 2 : -Math.PI / 2;
+    return dir > 0 ? 0 : Math.PI;
+  }
+
+  lanePos(axis, off, along) {
+    return axis === 'x' ? { x: along, z: off } : { x: off, z: along };
+  }
+
+  lerpAngle(a, b, t) {
+    let d = b - a;
+    while (d > Math.PI) d -= Math.PI * 2;
+    while (d < -Math.PI) d += Math.PI * 2;
+    return a + d * t;
+  }
+
   update(delta) {
     this.updateLights(delta);
     const p = this.player.position;
@@ -146,11 +162,27 @@ export default class TrafficSystem {
     for (const c of this.cars) {
       const x = c.axis === 'x' ? c.along : c.off;
       const z = c.axis === 'z' ? c.along : c.off;
-
-      // Stop at red light when approaching the intersection (but not if already inside it)
       const go = this.axisGo(c.axis);
+
+      // Decide to turn at the intersection (only on green, once per crossing)
+      if (!c.turning && go && Math.abs(c.along) < 1.2 && !c.turnedRecently && Math.random() < 0.4) {
+        c.turnedRecently = true;
+        if (c.axis === 'x') {
+          const opt = Math.random() < 0.5 ? { off: 3, dir: 1 } : { off: -3, dir: -1 };
+          c.axis = 'z'; c.off = opt.off; c.dir = opt.dir;
+        } else {
+          const opt = Math.random() < 0.5 ? { off: -3, dir: 1 } : { off: 3, dir: -1 };
+          c.axis = 'x'; c.off = opt.off; c.dir = opt.dir;
+        }
+        c.along = (c.axis === 'x' ? x : z); // current coordinate on the new axis
+        c.turning = true;
+        c.turnT = 0;
+      }
+      if (Math.abs(c.along) > 12) c.turnedRecently = false;
+
+      // Stop at red light when approaching the intersection (turning cars are exempt)
       let stopForLight = false;
-      if (!go) {
+      if (!go && !c.turning) {
         if (c.dir > 0 && c.along > -8 && c.along < -5) stopForLight = true;
         if (c.dir < 0 && c.along < 8 && c.along > 5) stopForLight = true;
       }
@@ -165,7 +197,6 @@ export default class TrafficSystem {
 
       c.along += c.dir * c.speed * delta;
 
-      // Hold at the stop line
       if (stopForLight) {
         if (c.dir > 0) c.along = Math.min(c.along, -5.2);
         else c.along = Math.max(c.along, 5.2);
@@ -174,7 +205,18 @@ export default class TrafficSystem {
       if (c.along > this.limit) c.along = -this.limit;
       else if (c.along < -this.limit) c.along = this.limit;
 
-      this.place(c);
+      // Smoothly ease into the new lane while turning, otherwise snap to lane
+      if (c.turning) {
+        c.turnT += delta / 0.5;
+        const lp = this.lanePos(c.axis, c.off, c.along);
+        c.group.position.x += (lp.x - c.group.position.x) * Math.min(1, delta * 8);
+        c.group.position.z += (lp.z - c.group.position.z) * Math.min(1, delta * 8);
+        c.group.position.y = 0;
+        c.group.rotation.y = this.lerpAngle(c.group.rotation.y, this.laneHeading(c.axis, c.dir), Math.min(1, delta * 7));
+        if (c.turnT >= 1) c.turning = false;
+      } else {
+        this.place(c);
+      }
     }
   }
 }
