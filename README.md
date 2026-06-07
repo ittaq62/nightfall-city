@@ -79,8 +79,11 @@ nightfall-city/
 │   ├── game/
 │   │   ├── Game.js             # Scène, caméra, renderer, boucle, minimap
 │   │   ├── PlayerController.js  # Déplacement, caméra 3e personne, collisions
-│   │   ├── CharacterModel.js   # Humanoïde (capsules) + animation de marche
+│   │   ├── CharacterModel.js   # Humanoïde habillable + accessoires
+│   │   ├── GLTFCharacter.js    # Chargeur de modèle 3D réaliste (.glb) animé
 │   │   ├── CharacterCreator.js # Création de personnage (aperçu 3D live)
+│   │   ├── Outfits.js          # Catalogue de tenues + accessoires
+│   │   ├── WardrobeSystem.js   # Friperie (acheter / équiper des tenues)
 │   │   ├── CityBuilder.js      # Construction de la ville (immeubles, rues, néons)
 │   │   ├── NPC.js              # PNJ (Tony, Maria, Vince) + proximité
 │   │   ├── Vehicle.js          # Voiture conduisible (physique arcade)
@@ -111,7 +114,10 @@ nightfall-city/
 
 - **Création de personnage** (style Sims) au lancement : aperçu 3D en direct, choix
   de la peau, des cheveux, du haut, du pantalon et du nom (mémorisé).
-- **Personnages 3D** (capsules arrondies) avec animation de marche, caméra 3e personne.
+- **Personnage 3D réaliste** (modèle `.glb` animé : marche / course / idle) par défaut.
+- **Tenues & apparence** : **friperie** pour acheter/équiper des tenues (hoodie, costume,
+  survêtement, ouvrier, médecin…) qui **changent l'apparence**. Tenue de **métier** automatique :
+  deviens **policier** au commissariat → uniforme + casquette + gilet.
 - **Rendu cinématique** : bloom (néons/lumières qui rayonnent), reflets sur la route
   mouillée, env-map, luminosité réglable (menu pause).
 - **Déplacement fluide** ZQSD / WASD + course (Shift).
@@ -172,11 +178,11 @@ nightfall-city/
 
 ## 🔭 Prochaines améliorations possibles
 
-- **Modèles GLTF importés** (vrais personnages/voitures réalistes) — c'est l'étape
-  nécessaire pour un rendu type GTA ; il faut fournir des fichiers `.glb`.
-- Système de police / réputation criminelle.
+- **Avatar personnalisable réaliste (Ready Player Me)** : importer son propre avatar
+  `.glb` (visage, tenue) avec animations.
+- Plus de métiers (livreur, taxi déjà là, médecin…) avec missions dédiées.
 - Intérieurs de bâtiments accessibles.
 
 ---
 
-*Prototype — version 0.9.0*
+*Prototype — version 0.10.0*
