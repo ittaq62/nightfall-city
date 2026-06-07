@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { clamp } from './Utils.js';
 
 // Color keyframes
-const NIGHT_SKY = new THREE.Color(0x161a26);  // lifted so the night never goes fully black
+const NIGHT_SKY = new THREE.Color(0x1e2333);  // lifted so the night never goes fully black
 const DAY_SKY = new THREE.Color(0x6678a0);    // muted, urban daylight (keeps the noir vibe)
 const TWILIGHT_SKY = new THREE.Color(0xd9663a);
 
@@ -55,8 +55,8 @@ export default class DayNightCycle {
     this.sun.position.set(Math.cos(ang) * 45, 55, Math.sin(ang) * 45);
 
     // Ambient / hemisphere brighten during the day (night stays clearly readable)
-    this.ambient.intensity = 1.25 + daylight * 0.55;
-    this.hemi.intensity = 0.95 + daylight * 0.45;
+    this.ambient.intensity = 1.5 + daylight * 0.5;
+    this.hemi.intensity = 1.15 + daylight * 0.4;
 
     // Streetlights & neon: full at night, dimmed during the day
     const artificial = 0.15 + (1 - daylight) * 0.85;

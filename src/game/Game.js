@@ -58,7 +58,7 @@ export default class Game {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.1;
+    this.renderer.toneMappingExposure = 1.45;
   }
 
   initScene() {
@@ -409,9 +409,9 @@ export default class Game {
     const sideX = Math.cos(this.vehicle.heading);
     const sideZ = -Math.sin(this.vehicle.heading);
     this.player.position.set(
-      this.vehicle.position.x + sideX * 2.2,
+      this.vehicle.position.x + sideX * 3,
       0,
-      this.vehicle.position.z + sideZ * 2.2
+      this.vehicle.position.z + sideZ * 3
     );
     this.player.yaw = this.vehicle.heading + Math.PI; // camera behind player
     this.player.group.visible = true;
@@ -783,6 +783,10 @@ export default class Game {
       this.audio.setEngineRpm(Math.abs(this.vehicle.speed) / this.vehicle.maxSpeed);
       this.hud.showSpeed(this.vehicle.kmh);
     } else {
+      // On foot: collide with traffic cars and the parked drivable car
+      const dyn = this.traffic.cars.map((c) => c.group.position);
+      dyn.push(this.vehicle.position);
+      this.player.dynamicObstacles = dyn;
       this.player.update(delta, time);
     }
 

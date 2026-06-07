@@ -27,6 +27,7 @@ export default class PlayerController {
     this.obstacles = [];
     this.audio = null;
     this.stepTimer = 0;
+    this.dynamicObstacles = []; // car positions to walk around (set each frame)
 
     this.buildModel();
     this.setupInput();
@@ -47,6 +48,16 @@ export default class PlayerController {
 
   setObstacles(obstacles) {
     this.obstacles = obstacles;
+  }
+
+  hitsCars(pos) {
+    const r = this.radius + 1.6; // player radius + car half-extent
+    for (const o of this.dynamicObstacles) {
+      const dx = pos.x - o.x;
+      const dz = pos.z - o.z;
+      if (dx * dx + dz * dz < r * r) return true;
+    }
+    return false;
   }
 
   setupInput() {
@@ -113,13 +124,13 @@ export default class PlayerController {
       // Try X axis
       const tryX = this.position.clone();
       tryX.x += move.x;
-      if (!checkBoxCollision(tryX, this.radius, this.obstacles)) {
+      if (!checkBoxCollision(tryX, this.radius, this.obstacles) && !this.hitsCars(tryX)) {
         this.position.x = tryX.x;
       }
       // Try Z axis
       const tryZ = this.position.clone();
       tryZ.z += move.z;
-      if (!checkBoxCollision(tryZ, this.radius, this.obstacles)) {
+      if (!checkBoxCollision(tryZ, this.radius, this.obstacles) && !this.hitsCars(tryZ)) {
         this.position.z = tryZ.z;
       }
 

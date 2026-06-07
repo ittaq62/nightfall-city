@@ -38,9 +38,9 @@ export default class CityBuilder {
 
   buildGround() {
     const groundMat = new THREE.MeshStandardMaterial({
-      color: 0x12121a,
-      roughness: 0.3,
-      metalness: 0.6,
+      color: 0xffffff,
+      roughness: 0.5,
+      metalness: 0.3,
       map: makeGround(16, 16),
     });
     const ground = new THREE.Mesh(new THREE.PlaneGeometry(120, 120), groundMat);
@@ -53,7 +53,7 @@ export default class CityBuilder {
     // Main horizontal road
     const roadH = new THREE.Mesh(
       new THREE.PlaneGeometry(120, 12),
-      new THREE.MeshStandardMaterial({ color: 0x1c1c24, roughness: 0.45, metalness: 0.5, map: makeAsphalt(30, 3) })
+      new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.55, metalness: 0.3, map: makeAsphalt(30, 3) })
     );
     roadH.rotation.x = -Math.PI / 2;
     roadH.position.y = 0.01;
@@ -63,7 +63,7 @@ export default class CityBuilder {
     // Cross road
     const roadV = new THREE.Mesh(
       new THREE.PlaneGeometry(12, 120),
-      new THREE.MeshStandardMaterial({ color: 0x1c1c24, roughness: 0.45, metalness: 0.5, map: makeAsphalt(3, 30) })
+      new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.55, metalness: 0.3, map: makeAsphalt(3, 30) })
     );
     roadV.rotation.x = -Math.PI / 2;
     roadV.position.y = 0.01;
@@ -98,7 +98,7 @@ export default class CityBuilder {
     ];
     for (const p of positions) {
       const swMat = new THREE.MeshStandardMaterial({
-        color: 0x33333c,
+        color: 0xffffff,
         roughness: 0.85,
         map: makeConcrete(p.w / 4, p.d / 4),
       });

@@ -25,7 +25,7 @@ function toTexture(cv, repeatX, repeatY) {
 }
 
 export function makeAsphalt(repeatX = 1, repeatY = 1) {
-  const { cv, ctx } = noiseCanvas(256, '#16161d', { count: 2400, min: 1, max: 3, r: 130, g: 130, b: 150, alpha: 0.16 });
+  const { cv, ctx } = noiseCanvas(256, '#3b3c46', { count: 2400, min: 1, max: 3, r: 150, g: 150, b: 170, alpha: 0.18 });
   ctx.strokeStyle = 'rgba(0,0,0,0.4)';
   ctx.lineWidth = 1;
   for (let i = 0; i < 9; i++) {
@@ -38,7 +38,7 @@ export function makeAsphalt(repeatX = 1, repeatY = 1) {
 }
 
 export function makeConcrete(repeatX = 1, repeatY = 1) {
-  const { cv, ctx } = noiseCanvas(256, '#2a2a33', { count: 1600, min: 1, max: 2, r: 200, g: 200, b: 215, alpha: 0.1 });
+  const { cv, ctx } = noiseCanvas(256, '#50515b', { count: 1600, min: 1, max: 2, r: 210, g: 210, b: 225, alpha: 0.12 });
   ctx.strokeStyle = 'rgba(0,0,0,0.28)';
   ctx.lineWidth = 2;
   for (let i = 0; i <= 256; i += 64) {
@@ -49,7 +49,7 @@ export function makeConcrete(repeatX = 1, repeatY = 1) {
 }
 
 export function makeGround(repeatX = 1, repeatY = 1) {
-  const { cv } = noiseCanvas(256, '#0a0a10', { count: 1500, min: 1, max: 3, r: 70, g: 70, b: 100, alpha: 0.14 });
+  const { cv } = noiseCanvas(256, '#2c2c36', { count: 1500, min: 1, max: 3, r: 90, g: 90, b: 120, alpha: 0.16 });
   return toTexture(cv, repeatX, repeatY);
 }
 
