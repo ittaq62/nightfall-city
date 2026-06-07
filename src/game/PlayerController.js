@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { checkBoxCollision, clamp } from './Utils.js';
 import CharacterModel from './CharacterModel.js';
+import GLTFCharacter from './GLTFCharacter.js';
 
 export default class PlayerController {
   constructor(scene, camera, domElement) {
@@ -34,16 +35,31 @@ export default class PlayerController {
   }
 
   buildModel() {
-    // Articulated humanoid (hoodie look)
-    this.character = new CharacterModel({
-      skin: 0x8a6a4a,
-      outfit: 0x3e3e52,
-      pants: 0x2a2a36,
-      hair: 0x1a1a1a,
-    });
-    this.group = this.character.group;
+    // Player root (position + facing live here, the visible model is a child)
+    this.group = new THREE.Group();
     this.group.position.copy(this.position);
     this.scene.add(this.group);
+
+    // Fallback stylized model (shown until the realistic GLB finishes loading)
+    this.character = new CharacterModel({
+      skin: 0x8a6a4a, outfit: 0x3e3e52, pants: 0x2a2a36, hair: 0x1a1a1a,
+    });
+    this.modelHolder = this.character.group;
+    this.group.add(this.modelHolder);
+    this.activeModel = this.character;
+    this.usingGLB = false;
+
+    // Load a realistic rigged character with walk/run/idle animations
+    this.gltfChar = new GLTFCharacter('/models/Soldier.glb', {
+      scale: 1,
+      onReady: () => {
+        if (this.modelHolder) this.group.remove(this.modelHolder);
+        this.group.add(this.gltfChar.group);
+        this.modelHolder = this.gltfChar.group;
+        this.activeModel = this.gltfChar;
+        this.usingGLB = true;
+      },
+    });
   }
 
   setObstacles(obstacles) {
@@ -51,18 +67,18 @@ export default class PlayerController {
   }
 
   setAppearance(app) {
-    const pos = this.position.clone();
-    const rotY = this.group ? this.group.rotation.y : 0;
-    const visible = this.group ? this.group.visible : true;
-    if (this.group) this.scene.remove(this.group);
+    this._appearance = app;
+    // The realistic GLB is textured, so colour choices only affect the fallback model
+    if (this.usingGLB) return;
+    const wasVisible = this.modelHolder ? this.modelHolder.visible : true;
+    if (this.modelHolder) this.group.remove(this.modelHolder);
     this.character = new CharacterModel({
       skin: app.skin, outfit: app.outfit, pants: app.pants, hair: app.hair,
     });
-    this.group = this.character.group;
-    this.group.position.copy(pos);
-    this.group.rotation.y = rotY;
-    this.group.visible = visible;
-    this.scene.add(this.group);
+    this.modelHolder = this.character.group;
+    this.modelHolder.visible = wasVisible;
+    this.group.add(this.modelHolder);
+    this.activeModel = this.character;
   }
 
   hitsCars(pos) {
@@ -164,10 +180,10 @@ export default class PlayerController {
       this.stepTimer = 0.4; // ready to step almost immediately when starting to move
     }
 
-    // Animate the articulated character
+    // Animate the active character model (GLB or fallback)
     const moving = move.lengthSq() > 1e-6;
     const speed01 = moving ? (running ? 1 : 0.5) : 0;
-    this.character.update(delta, speed01);
+    this.activeModel.update(delta, speed01);
 
     this.group.position.copy(this.position);
     this.updateCamera();
