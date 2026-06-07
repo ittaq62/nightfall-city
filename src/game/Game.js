@@ -6,6 +6,7 @@ import Vehicle from './Vehicle.js';
 import TrafficSystem from './TrafficSystem.js';
 import OnlinePlayers from './OnlinePlayers.js';
 import Network from './Network.js';
+import Atmosphere from './Atmosphere.js';
 import HUD from './HUD.js';
 import InventorySystem from './InventorySystem.js';
 import MissionSystem, { jobForRep } from './MissionSystem.js';
@@ -130,6 +131,13 @@ export default class Game {
 
     // AI traffic cruising the main roads
     this.traffic = new TrafficSystem({ scene: this.scene, player: this.player });
+
+    // Ambient atmosphere (motes + fountain particles), fountain matches the plaza
+    this.atmosphere = new Atmosphere({
+      scene: this.scene,
+      player: this.player,
+      fountainPos: new THREE.Vector3(-38, 0, 40),
+    });
 
     // Simulated online players (local, no backend) - used when no server is reachable
     this.online = new OnlinePlayers({ scene: this.scene, hud: this.hud, count: 5 });
@@ -721,6 +729,7 @@ export default class Game {
 
     for (const npc of this.npcs) npc.update(this.player.position, delta, time);
     this.traffic.update(delta);
+    this.atmosphere.update(delta, time);
     this.online.update(delta, time);
     const localMoving = this.mode === 'drive'
       ? Math.abs(this.vehicle.speed) > 0.5

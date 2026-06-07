@@ -26,6 +26,15 @@ body {
 
 .hidden { display: none !important; }
 
+/* Vignette overlay for a moodier night look */
+#vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,0.55) 100%);
+}
+
 /* Start overlay */
 #start-overlay {
   position: absolute;
