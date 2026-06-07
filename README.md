@@ -112,15 +112,17 @@ nightfall-city/
 
 ## ✅ Ce qui fonctionne
 
-- **Création de personnage** (style Sims) au lancement : aperçu 3D en direct, choix
-  de la peau, des cheveux, du haut, du pantalon et du nom (mémorisé).
-- **Personnage personnalisable** (façon Sims) : choisis **peau, couleur de cheveux,
-  coiffure** dans le créateur, puis habille-toi en ville. Le modèle s'anime
-  (marche / course / idle) et porte les tenues/uniformes qui s'ajustent dessus.
-- **Avatar réaliste** (Ready Player Me) disponible comme tenue « réaliste » dans la garde-robe.
-- **Tenues & apparence** : **friperie** pour acheter/équiper des tenues (hoodie, costume,
-  survêtement, ouvrier, médecin…) qui **changent l'apparence**. Tenue de **métier** automatique :
-  deviens **policier** au commissariat → uniforme + casquette + gilet.
+- **Création de personnage** (style Sims) au lancement : aperçu 3D en direct de
+  l'**avatar réaliste**, choix du nom (mémorisé).
+- **Avatar réaliste personnalisable** (Ready Player Me, **intégré au jeu**) : le bouton
+  **« Personnaliser mon avatar »** ouvre le créateur Ready Player Me dans une fenêtre du
+  jeu — choisis **visage, peau, cheveux, barbe, tenue**. L'avatar réaliste obtenu est
+  chargé, animé (marche / course / idle) et **mémorisé**. Aucun lien à coller. Un avatar
+  réaliste par défaut est fourni (et sert de secours hors ligne).
+- **Tenues & métiers** : **friperie** pour acheter/équiper des accessoires (casquette,
+  gilet, casque, lunettes…) ajustés sur le modèle. Tenue de **métier** automatique :
+  deviens **policier** au commissariat → casquette + gilet + badge, ajustés sur le squelette
+  de l'avatar (donc ils tombent juste sur n'importe quel avatar).
 - **Rendu cinématique** : bloom (néons/lumières qui rayonnent), reflets sur la route
   mouillée, env-map, luminosité réglable (menu pause).
 - **Déplacement fluide** ZQSD / WASD + course (Shift).
@@ -181,11 +183,11 @@ nightfall-city/
 
 ## 🔭 Prochaines améliorations possibles
 
-- **Avatar personnalisable réaliste (Ready Player Me)** : importer son propre avatar
-  `.glb` (visage, tenue) avec animations.
 - Plus de métiers (livreur, taxi déjà là, médecin…) avec missions dédiées.
 - Intérieurs de bâtiments accessibles.
+- Tenues complètes (et pas seulement des accessoires) via des avatars Ready Player Me
+  pré-habillés par métier.
 
 ---
 
-*Prototype — version 0.10.0*
+*Prototype — version 0.13.0*
