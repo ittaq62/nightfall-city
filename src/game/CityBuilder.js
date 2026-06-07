@@ -26,6 +26,8 @@ export default class CityBuilder {
     this.buildShopEntrance();
     this.buildBank();
     this.buildTaxiStand();
+    this.buildClothesShop();
+    this.buildPoliceStation();
     this.buildBoundaryWalls();
     return this;
   }
@@ -517,6 +519,46 @@ export default class CityBuilder {
 
     this.taxiZone = new THREE.Vector3(zoneX, 0, zoneZ);
     this.taxiRadius = 2.6;
+  }
+
+  buildZoneMarker(x, z, color, label) {
+    const padMat = new THREE.MeshStandardMaterial({
+      color: 0x222028, emissive: color, emissiveIntensity: 0.4,
+      transparent: true, opacity: 0.7,
+    });
+    const pad = new THREE.Mesh(new THREE.CircleGeometry(2, 32), padMat);
+    pad.rotation.x = -Math.PI / 2;
+    pad.position.set(x, 0.12, z);
+    this.scene.add(pad);
+
+    const pole = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.1, 0.12, 3, 8),
+      new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.8 })
+    );
+    pole.position.set(x, 1.5, z);
+    this.scene.add(pole);
+
+    const sign = createTextSprite(label, { color: '#' + color.toString(16).padStart(6, '0'), fontSize: 28, scale: 0.013 });
+    sign.position.set(x, 3.4, z);
+    this.scene.add(sign);
+
+    const light = new THREE.PointLight(color, 1, 11);
+    light.position.set(x, 3, z);
+    this.scene.add(light);
+    this.nightLights.push({ light, base: 1 });
+
+    return new THREE.Vector3(x, 0, z);
+  }
+
+  buildClothesShop() {
+    this.wardrobeZone = this.buildZoneMarker(-12, 7, 0xc08adf, 'FRIPERIE');
+    this.wardrobeRadius = 2.6;
+  }
+
+  buildPoliceStation() {
+    this.createBuilding(12, -20, 14, 12, 12, 0x20304a, 'COMMISSARIAT', '#5599ff');
+    this.policeZone = this.buildZoneMarker(12, -7, 0x5599ff, 'POLICE - Emploi');
+    this.policeRadius = 2.6;
   }
 
   buildBoundaryWalls() {

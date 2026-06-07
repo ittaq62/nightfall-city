@@ -77,6 +77,58 @@ export default class CharacterModel {
     this.rightLeg = this._limb(pantsMat, shoeMat, 0.62, 0.1, true);
     this.rightLeg.position.set(0.12, 0.92, 0);
     this.group.add(this.rightLeg);
+
+    this._buildAccessories(options.accessories || []);
+  }
+
+  _buildAccessories(list) {
+    const add = (geo, mat, x, y, z, rx = 0) => {
+      const m = new THREE.Mesh(geo, mat);
+      m.position.set(x, y, z);
+      if (rx) m.rotation.x = rx;
+      m.castShadow = true;
+      this.group.add(m);
+      return m;
+    };
+    const mk = (color, rough = 0.6) => new THREE.MeshStandardMaterial({ color, roughness: rough });
+
+    for (const acc of list) {
+      if (acc === 'cap') {
+        const m = mk(0x141a33);
+        const dome = add(new THREE.SphereGeometry(0.225, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.5), m, 0, 1.86, 0);
+        dome.scale.set(1, 0.7, 1);
+        add(new THREE.BoxGeometry(0.34, 0.05, 0.2), m, 0, 1.83, 0.22);
+      } else if (acc === 'helmet') {
+        const m = mk(0xf0b020, 0.5);
+        const dome = add(new THREE.SphereGeometry(0.24, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.5), m, 0, 1.86, 0);
+        dome.scale.set(1, 0.85, 1);
+        add(new THREE.CylinderGeometry(0.3, 0.3, 0.04, 16), m, 0, 1.82, 0);
+      } else if (acc === 'beanie') {
+        const m = mk(0x202020, 0.9);
+        const b = add(new THREE.SphereGeometry(0.235, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.62), m, 0, 1.8, 0);
+        b.scale.set(1, 0.85, 1);
+      } else if (acc === 'glasses') {
+        add(new THREE.BoxGeometry(0.34, 0.06, 0.04), mk(0x0a0a0a, 0.3), 0, 1.79, 0.2);
+      } else if (acc === 'tie') {
+        const m = mk(0x9a1f2a, 0.5);
+        add(new THREE.BoxGeometry(0.07, 0.34, 0.05), m, 0, 1.18, 0.16);
+        add(new THREE.BoxGeometry(0.09, 0.08, 0.05), m, 0, 1.42, 0.16);
+      } else if (acc === 'vest' || acc === 'vest_police') {
+        const base = acc === 'vest' ? 0xeedd22 : 0x0b1230;
+        const shell = add(new THREE.BoxGeometry(0.58, 0.56, 0.36), mk(base, 0.6), 0, 1.27, 0);
+        shell.castShadow = true;
+        const stripe = mk(acc === 'vest' ? 0xcfd2d6 : 0xdfe6ff, 0.4);
+        add(new THREE.BoxGeometry(0.6, 0.07, 0.38), stripe, 0, 1.36, 0);
+        add(new THREE.BoxGeometry(0.6, 0.07, 0.38), stripe, 0, 1.18, 0);
+      } else if (acc === 'badge') {
+        add(new THREE.BoxGeometry(0.09, 0.11, 0.03), mk(0xf5c542, 0.3), -0.14, 1.42, 0.17);
+      } else if (acc === 'stetho') {
+        const m = mk(0x3a3a40, 0.4);
+        const ring = add(new THREE.TorusGeometry(0.13, 0.02, 8, 20), m, 0, 1.52, 0.04, Math.PI / 2);
+        ring.scale.set(1, 1, 0.6);
+        add(new THREE.BoxGeometry(0.05, 0.05, 0.03), m, 0.1, 1.3, 0.17);
+      }
+    }
   }
 
   _limb(material, endMat, length, radius, isLeg = false) {

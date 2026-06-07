@@ -19,6 +19,7 @@ import InventorySystem from './InventorySystem.js';
 import MissionSystem, { jobForRep } from './MissionSystem.js';
 import ShopSystem from './ShopSystem.js';
 import BankSystem from './BankSystem.js';
+import WardrobeSystem from './WardrobeSystem.js';
 import InventoryUI from './InventoryUI.js';
 import AudioSystem from './AudioSystem.js';
 import SaveSystem from './SaveSystem.js';
@@ -38,6 +39,8 @@ export default class Game {
       bank: 0,
       reputation: 12,
       job: 'Citoyen',
+      outfit: 'realistic',           // currently equipped look
+      ownedOutfits: ['realistic', 'casual'],
     };
     this.rent = 60; // charged each in-game morning
 
@@ -204,6 +207,10 @@ export default class Game {
     // Taxi job
     this.taxi = new TaxiSystem({ scene: this.scene, hud: this.hud, audio: this.audio, playerState: this.playerState });
 
+    // Wardrobe / clothes shop
+    this.wardrobe = new WardrobeSystem(this.playerState, this.hud, this.audio, this.player, () => this.save.save());
+    this.wardrobe.onClose = () => { this.player.inputBlocked = false; };
+
     // Detailed inventory panel (I)
     this.inventoryUI = new InventoryUI(this.inventory, (i) => this.useSlot(i, true));
     this.inventoryUI.onClose = () => { this.player.inputBlocked = false; };
@@ -237,6 +244,9 @@ export default class Game {
       this.player.group.position.copy(this.player.position);
       setTimeout(() => this.hud.showNotification('Partie chargee'), 500);
     }
+    // Sync the equipped outfit onto the player model
+    if (!this.playerState.ownedOutfits) this.playerState.ownedOutfits = ['realistic', 'casual'];
+    this.player.setOutfit(this.playerState.outfit || 'realistic');
 
     this.hud.updatePlayerInfo(this.playerState);
     this.hud.updateNeeds(this.needs);
@@ -414,6 +424,26 @@ export default class Game {
     try { localStorage.setItem(APPEARANCE_KEY, JSON.stringify(app)); } catch (e) { /* ignore */ }
   }
 
+  togglePoliceJob() {
+    const ps = this.playerState;
+    if (ps.job === 'Policier') {
+      ps.job = jobForRep(ps.reputation);
+      const revert = ps.ownedOutfits.includes('casual') ? 'casual' : 'realistic';
+      ps.outfit = revert;
+      this.player.setOutfit(revert);
+      this.hud.showNotification('Tu as quitte la police');
+    } else {
+      ps.job = 'Policier';
+      if (!ps.ownedOutfits.includes('police')) ps.ownedOutfits.push('police');
+      ps.outfit = 'police';
+      this.player.setOutfit('police');
+      this.hud.showNotification('Tu es policier ! Uniforme equipe.');
+    }
+    this.audio.click();
+    this.hud.updatePlayerInfo(ps);
+    this.save.save();
+  }
+
   // Called when the player clicks "Jouer" - applies the chosen name and goes online
   beginSession(name) {
     const clean = (name || '').trim().slice(0, 16);
@@ -506,7 +536,8 @@ export default class Game {
     }
 
     // Don't process world interactions while a panel is open
-    if (this.hud.isDialogOpen() || this.shop.isOpen || this.bank.isOpen || this.inventoryUI.isOpen) {
+    if (this.hud.isDialogOpen() || this.shop.isOpen || this.bank.isOpen ||
+        this.wardrobe.isOpen || this.inventoryUI.isOpen) {
       this.hud.hideInteractPrompt();
       return;
     }
@@ -600,6 +631,26 @@ export default class Game {
       return;
     }
 
+    // --- Clothes shop (Friperie) ---
+    const nearWardrobe = distance2D(playerPos, this.city.wardrobeZone) <= this.city.wardrobeRadius;
+    if (nearWardrobe) {
+      this.hud.showInteractPrompt('Appuie sur E pour la friperie (vetements)');
+      if (ePressed) {
+        this.player.inputBlocked = true;
+        this.wardrobe.open();
+      }
+      return;
+    }
+
+    // --- Police station: take / leave the police job ---
+    const nearPolice = distance2D(playerPos, this.city.policeZone) <= this.city.policeRadius;
+    if (nearPolice) {
+      const isCop = this.playerState.job === 'Policier';
+      this.hud.showInteractPrompt(isCop ? 'Appuie sur E pour quitter la police' : 'Appuie sur E pour devenir policier');
+      if (ePressed) this.togglePoliceJob();
+      return;
+    }
+
     this.hud.hideInteractPrompt();
   }
 
@@ -643,7 +694,7 @@ export default class Game {
     this.save.save();
     if (due > 0) {
       ps.reputation = Math.max(0, ps.reputation - 2);
-      ps.job = jobForRep(ps.reputation);
+      if (ps.job !== 'Policier') ps.job = jobForRep(ps.reputation);
       this.hud.updatePlayerInfo(ps);
       this.hud.showNotification(`Loyer impaye ! -2 reputation`);
     } else {

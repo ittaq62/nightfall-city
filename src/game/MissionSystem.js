@@ -161,7 +161,9 @@ export default class MissionSystem {
     this.inventory.removeItem(mission.needItem);
     this.playerState.money += mission.reward.money;
     this.playerState.reputation += mission.reward.rep;
-    this.playerState.job = jobForRep(this.playerState.reputation);
+    if (this.playerState.job !== 'Policier') {
+      this.playerState.job = jobForRep(this.playerState.reputation);
+    }
     // Repeatable jobs become available again; one-shots are marked done
     mission.state = mission.repeatable ? MissionState.AVAILABLE : MissionState.COMPLETED;
 

@@ -467,6 +467,44 @@ body {
 }
 #shop-close:hover { background: rgba(255,255,255,0.18); }
 
+/* Wardrobe */
+#hud-wardrobe {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 420px;
+  max-width: 92vw;
+  background: rgba(10,10,15,0.96);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 12px;
+  padding: 20px;
+  backdrop-filter: blur(15px);
+  z-index: 40;
+}
+.wd-items { display: flex; flex-direction: column; gap: 8px; margin: 14px 0 16px; }
+.wd-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 8px;
+  padding: 9px 12px;
+}
+.wd-swatch { width: 22px; height: 22px; border-radius: 5px; border: 1px solid rgba(255,255,255,0.2); }
+.wd-name { flex: 1; font-size: 0.9rem; }
+.wd-btn {
+  background: #c08adf; color: #000; border: none; border-radius: 6px;
+  padding: 6px 14px; font-weight: 600; font-size: 0.8rem; cursor: pointer;
+}
+.wd-btn:hover { filter: brightness(1.1); }
+.wd-equipped { font-size: 0.8rem; color: #66dd88; font-weight: 600; }
+#wardrobe-close {
+  width: 100%; background: rgba(255,255,255,0.1); color: #fff;
+  border: none; border-radius: 6px; padding: 10px; font-weight: 600; cursor: pointer;
+}
+#wardrobe-close:hover { background: rgba(255,255,255,0.18); }
+
 /* Bank panel */
 #hud-bank {
   position: absolute;

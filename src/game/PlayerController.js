@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { checkBoxCollision, clamp } from './Utils.js';
 import CharacterModel from './CharacterModel.js';
 import GLTFCharacter from './GLTFCharacter.js';
+import { OUTFITS } from './Outfits.js';
 
 export default class PlayerController {
   constructor(scene, camera, domElement) {
@@ -40,26 +41,54 @@ export default class PlayerController {
     this.group.position.copy(this.position);
     this.scene.add(this.group);
 
-    // Fallback stylized model (shown until the realistic GLB finishes loading)
-    this.character = new CharacterModel({
-      skin: 0x8a6a4a, outfit: 0x3e3e52, pants: 0x2a2a36, hair: 0x1a1a1a,
-    });
-    this.modelHolder = this.character.group;
-    this.group.add(this.modelHolder);
-    this.activeModel = this.character;
-    this.usingGLB = false;
+    this.appearance = { skin: 0x8a6a4a, hair: 0x1a1a1a };
+    this.outfitId = 'realistic';
+    this.modelHolder = null;
+    this.activeModel = null;
+    this.gltfReady = false;
 
-    // Load a realistic rigged character with walk/run/idle animations
+    // Realistic rigged character (default look)
     this.gltfChar = new GLTFCharacter('/models/Soldier.glb', {
       scale: 1,
       onReady: () => {
-        if (this.modelHolder) this.group.remove(this.modelHolder);
-        this.group.add(this.gltfChar.group);
-        this.modelHolder = this.gltfChar.group;
-        this.activeModel = this.gltfChar;
-        this.usingGLB = true;
+        this.gltfReady = true;
+        if (this.outfitId === 'realistic') this._showModel(this.gltfChar);
       },
     });
+
+    // Temporary stylized model until the GLB loads (so the player is visible)
+    this._showStylized('casual');
+  }
+
+  _showModel(model) {
+    const wasVisible = this.modelHolder ? this.modelHolder.visible : true;
+    if (this.modelHolder) this.group.remove(this.modelHolder);
+    this.group.add(model.group);
+    model.group.visible = wasVisible;
+    this.modelHolder = model.group;
+    this.activeModel = model;
+  }
+
+  _showStylized(outfitId) {
+    const o = OUTFITS[outfitId] || OUTFITS.casual;
+    this.character = new CharacterModel({
+      skin: this.appearance.skin,
+      hair: o.hair ?? this.appearance.hair,
+      outfit: o.outfit,
+      pants: o.pants,
+      accessories: o.accessories || [],
+    });
+    this._showModel(this.character);
+  }
+
+  setOutfit(outfitId) {
+    this.outfitId = outfitId;
+    if (outfitId === 'realistic') {
+      if (this.gltfReady) this._showModel(this.gltfChar);
+      else this._showStylized('casual');
+    } else {
+      this._showStylized(outfitId);
+    }
   }
 
   setObstacles(obstacles) {
@@ -67,18 +96,9 @@ export default class PlayerController {
   }
 
   setAppearance(app) {
-    this._appearance = app;
-    // The realistic GLB is textured, so colour choices only affect the fallback model
-    if (this.usingGLB) return;
-    const wasVisible = this.modelHolder ? this.modelHolder.visible : true;
-    if (this.modelHolder) this.group.remove(this.modelHolder);
-    this.character = new CharacterModel({
-      skin: app.skin, outfit: app.outfit, pants: app.pants, hair: app.hair,
-    });
-    this.modelHolder = this.character.group;
-    this.modelHolder.visible = wasVisible;
-    this.group.add(this.modelHolder);
-    this.activeModel = this.character;
+    if (app.skin != null) this.appearance.skin = app.skin;
+    if (app.hair != null) this.appearance.hair = app.hair;
+    this.setOutfit(app.outfitId || this.outfitId || 'realistic');
   }
 
   hitsCars(pos) {
