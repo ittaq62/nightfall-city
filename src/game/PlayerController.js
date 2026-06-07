@@ -41,30 +41,40 @@ export default class PlayerController {
     this.group.position.copy(this.position);
     this.scene.add(this.group);
 
-    // Fully customizable base character (skin / hair / clothes), default look
-    this.appearance = { skin: 0x8a6a4a, hair: 0x1a1410, hairStyle: 'short' };
+    // Realistic avatar = the player model. Outfits/jobs add accessories on top.
+    this.appearance = { name: 'Alex Mercer' };
     this.outfitId = 'casual';
     this.modelHolder = null;
     this.activeModel = null;
     this.gltfReady = false;
+    this._avatarUrl = '/models/avatar_default.glb';
     this._anims = {
       idle: '/models/anim_idle.glb',
       walk: '/models/anim_walk.glb',
       run: '/models/anim_run.glb',
     };
 
-    // Show the customizable model right away
+    // Stylized placeholder shown only while the realistic avatar loads
     this._showStylized('casual');
 
-    // Realistic avatar loaded in the background (used only for the "realistic" outfit)
-    this.gltfChar = new GLTFCharacter('/models/avatar_rpm.glb', {
-      scale: 1,
+    // Load the realistic avatar (auto-scaled, animated)
+    this._loadAvatar(this._avatarUrl);
+  }
+
+  // (Re)load a realistic .glb avatar — default one or a custom Ready Player Me URL
+  _loadAvatar(url) {
+    this._avatarUrl = url;
+    this.gltfReady = false;
+    const char = new GLTFCharacter(url, {
+      targetHeight: 1.8,
       animations: this._anims,
       onReady: () => {
+        if (this.gltfChar !== char) return; // a newer avatar was requested
         this.gltfReady = true;
-        if (this.outfitId === 'realistic') this.setOutfit('realistic');
+        this.setOutfit(this.outfitId);
       },
     });
+    this.gltfChar = char;
   }
 
   _showModel(model) {
@@ -91,14 +101,19 @@ export default class PlayerController {
 
   setOutfit(outfitId) {
     this.outfitId = outfitId;
-    if (outfitId === 'realistic') {
-      // The realistic avatar (not customizable, no accessories)
-      if (this.gltfReady) this._showModel(this.gltfChar);
-      else this._showStylized('casual');
+    const o = OUTFITS[outfitId] || OUTFITS.casual;
+    if (this.gltfReady && this.gltfChar) {
+      // Realistic avatar + outfit accessories (cap, vest, badge…) fitted on its bones
+      this._showModel(this.gltfChar);
+      this.gltfChar.attachAccessories(o.accessories || []);
     } else {
-      // The customizable model dressed with the chosen outfit + accessories
-      this._showStylized(outfitId);
+      this._showStylized(outfitId); // placeholder until the avatar is loaded
     }
+  }
+
+  // Swap to a custom realistic avatar (e.g. exported from the Ready Player Me creator)
+  setRealisticAvatar(url) {
+    if (url) this._loadAvatar(url);
   }
 
   setObstacles(obstacles) {
@@ -106,9 +121,9 @@ export default class PlayerController {
   }
 
   setAppearance(app) {
-    if (app.skin != null) this.appearance.skin = app.skin;
-    if (app.hair != null) this.appearance.hair = app.hair;
-    if (app.hairStyle != null) this.appearance.hairStyle = app.hairStyle;
+    if (!app) return;
+    if (app.name != null) this.appearance.name = app.name;
+    if (app.avatarUrl && app.avatarUrl !== this._avatarUrl) this._loadAvatar(app.avatarUrl);
     this.setOutfit(app.outfitId || this.outfitId || 'casual');
   }
 

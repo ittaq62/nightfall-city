@@ -12,15 +12,18 @@ function makeInPlace(clip) {
 // Loads a rigged .glb character. Animations can be baked into the file, or
 // loaded from separate .glb clip files (e.g. the Ready Player Me animation library).
 export default class GLTFCharacter {
-  constructor(url, { scale = 1, yOffset = 0, animations = null, onReady } = {}) {
+  constructor(url, { scale = 1, yOffset = 0, targetHeight = null, animations = null, onReady } = {}) {
     this.group = new THREE.Group();
     this.ready = false;
     this.mixer = null;
     this.current = null;
     this.model = null;
+    this.bones = {};
     this._scale = scale;
     this._yOffset = yOffset;
+    this._targetHeight = targetHeight;
     this._animUrls = animations;
+    this._accList = [];
 
     _loader.load(
       url,
@@ -32,13 +35,26 @@ export default class GLTFCharacter {
 
   _onLoad(gltf, onReady) {
     const model = gltf.scene;
-    model.scale.setScalar(this._scale);
-    model.position.y = this._yOffset;
+
+    // --- Auto-scale so every avatar (default or custom RPM) is the same height ---
+    model.updateWorldMatrix(true, true);
+    const box = new THREE.Box3().setFromObject(model);
+    const rawH = Math.max(0.001, box.max.y - box.min.y);
+    const scale = this._targetHeight ? this._targetHeight / rawH : this._scale;
+    model.scale.setScalar(scale);
+    // Put the feet on the ground (y = 0) whatever the model's origin is
+    model.position.y = -box.min.y * scale + this._yOffset;
+
     model.traverse((o) => {
       if (o.isMesh) { o.castShadow = true; o.frustumCulled = false; }
     });
     this.group.add(model);
     this.model = model;
+
+    // Index bones so accessories can be attached exactly on the head / chest
+    this.bones = {};
+    model.traverse((o) => { if (o.isBone) this.bones[o.name] = o; });
+
     this.mixer = new THREE.AnimationMixer(model);
 
     if (this._animUrls) {
@@ -95,10 +111,28 @@ export default class GLTFCharacter {
     this._acc = [];
   }
 
-  // Attach simple outfit accessories on top of the realistic avatar (no ugly model swap)
+  // Read a bone's position expressed in the character group's local space.
+  _bonePos(name, fallback) {
+    const b = this.bones && this.bones[name];
+    if (!b) return fallback.clone();
+    this.group.updateWorldMatrix(true, true);
+    return this.group.worldToLocal(b.getWorldPosition(new THREE.Vector3()));
+  }
+
+  // Attach outfit accessories anchored on the avatar's REAL head / chest bones,
+  // so caps, vests and badges fit any RPM avatar whatever its proportions.
   attachAccessories(list) {
     this.clearAccessories();
     this._acc = [];
+    this._accList = list ? list.slice() : [];
+    if (!this.model) return;
+
+    // Anchor points derived from the skeleton (group-local coordinates)
+    const head = this._bonePos('Head', new THREE.Vector3(0, 1.62, 0));
+    const chest = this._bonePos('Spine2', this._bonePos('Spine1', new THREE.Vector3(0, 1.32, 0)));
+    const hx = head.x, hz = head.z;          // head is centered on x; z is its depth
+    const cx = chest.x, cz = chest.z;
+
     const add = (geo, mat, x, y, z) => {
       const m = new THREE.Mesh(geo, mat);
       m.position.set(x, y, z);
@@ -109,36 +143,35 @@ export default class GLTFCharacter {
     };
     const mk = (color, rough = 0.6) => new THREE.MeshStandardMaterial({ color, roughness: rough });
 
-    for (const acc of list) {
+    for (const acc of list || []) {
       if (acc === 'cap') {
         const m = mk(0x121a35);
-        const d = add(new THREE.SphereGeometry(0.13, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.5), m, 0, 1.63, 0);
-        d.scale.set(1.2, 0.7, 1.2);
-        add(new THREE.BoxGeometry(0.24, 0.04, 0.14), m, 0, 1.61, 0.15);
+        const d = add(new THREE.SphereGeometry(0.12, 18, 12, 0, Math.PI * 2, 0, Math.PI * 0.55), m, hx, head.y + 0.13, hz);
+        d.scale.set(1.22, 0.85, 1.22);
+        add(new THREE.BoxGeometry(0.22, 0.03, 0.12), m, hx, head.y + 0.10, hz + 0.13); // visor (front = +z)
       } else if (acc === 'helmet') {
         const m = mk(0xf0b020, 0.5);
-        const d = add(new THREE.SphereGeometry(0.15, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.5), m, 0, 1.62, 0);
-        d.scale.set(1.1, 0.85, 1.1);
-        add(new THREE.CylinderGeometry(0.19, 0.19, 0.03, 16), m, 0, 1.58, 0);
+        const d = add(new THREE.SphereGeometry(0.14, 18, 12, 0, Math.PI * 2, 0, Math.PI * 0.55), m, hx, head.y + 0.12, hz);
+        d.scale.set(1.16, 0.95, 1.16);
+        add(new THREE.CylinderGeometry(0.18, 0.18, 0.03, 18), m, hx, head.y + 0.07, hz);
       } else if (acc === 'beanie') {
-        const b = add(new THREE.SphereGeometry(0.15, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.62), mk(0x202020, 0.9), 0, 1.56, 0);
-        b.scale.set(1.1, 0.9, 1.1);
+        const b = add(new THREE.SphereGeometry(0.14, 18, 12, 0, Math.PI * 2, 0, Math.PI * 0.65), mk(0x202024, 0.95), hx, head.y + 0.09, hz);
+        b.scale.set(1.16, 1.0, 1.16);
       } else if (acc === 'glasses') {
-        add(new THREE.BoxGeometry(0.22, 0.05, 0.04), mk(0x0a0a0a, 0.3), 0, 1.55, 0.11);
+        add(new THREE.BoxGeometry(0.20, 0.045, 0.03), mk(0x0a0a0a, 0.25), hx, head.y + 0.03, hz + 0.10);
       } else if (acc === 'tie') {
-        const m = mk(0x9a1f2a, 0.5);
-        add(new THREE.BoxGeometry(0.05, 0.26, 0.04), m, 0, 1.2, 0.11);
+        add(new THREE.BoxGeometry(0.05, 0.24, 0.03), mk(0x9a1f2a, 0.5), cx, chest.y - 0.05, cz + 0.10);
       } else if (acc === 'vest' || acc === 'vest_police') {
         const base = acc === 'vest' ? 0xeedd22 : 0x0b1230;
-        add(new THREE.BoxGeometry(0.46, 0.5, 0.3), mk(base, 0.6), 0, 1.25, 0.02);
+        add(new THREE.BoxGeometry(0.42, 0.46, 0.28), mk(base, 0.6), cx, chest.y, cz + 0.01);
         const stripe = mk(acc === 'vest' ? 0xcfd2d6 : 0xdfe6ff, 0.4);
-        add(new THREE.BoxGeometry(0.48, 0.06, 0.32), stripe, 0, 1.32, 0.02);
-        add(new THREE.BoxGeometry(0.48, 0.06, 0.32), stripe, 0, 1.16, 0.02);
+        add(new THREE.BoxGeometry(0.44, 0.05, 0.30), stripe, cx, chest.y + 0.07, cz + 0.01);
+        add(new THREE.BoxGeometry(0.44, 0.05, 0.30), stripe, cx, chest.y - 0.07, cz + 0.01);
       } else if (acc === 'badge') {
-        add(new THREE.BoxGeometry(0.07, 0.09, 0.03), mk(0xf5c542, 0.3), -0.12, 1.34, 0.14);
+        add(new THREE.BoxGeometry(0.06, 0.08, 0.02), mk(0xf5c542, 0.3), cx - 0.11, chest.y + 0.08, cz + 0.13);
       } else if (acc === 'stetho') {
         const m = mk(0x3a3a40, 0.4);
-        const r = add(new THREE.TorusGeometry(0.1, 0.018, 8, 20), m, 0, 1.42, 0.05);
+        const r = add(new THREE.TorusGeometry(0.09, 0.016, 8, 20), m, cx, chest.y + 0.12, cz + 0.04);
         r.rotation.x = Math.PI / 2;
         r.scale.set(1, 1, 0.6);
       }
