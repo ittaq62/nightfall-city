@@ -79,7 +79,8 @@ nightfall-city/
 │   ├── game/
 │   │   ├── Game.js             # Scène, caméra, renderer, boucle, minimap
 │   │   ├── PlayerController.js  # Déplacement, caméra 3e personne, collisions
-│   │   ├── CharacterModel.js   # Humanoïde articulé + animation de marche
+│   │   ├── CharacterModel.js   # Humanoïde (capsules) + animation de marche
+│   │   ├── CharacterCreator.js # Création de personnage (aperçu 3D live)
 │   │   ├── CityBuilder.js      # Construction de la ville (immeubles, rues, néons)
 │   │   ├── NPC.js              # PNJ (Tony, Maria, Vince) + proximité
 │   │   ├── Vehicle.js          # Voiture conduisible (physique arcade)
@@ -108,8 +109,11 @@ nightfall-city/
 
 ## ✅ Ce qui fonctionne
 
-- **Personnages 3D articulés** (joueur + PNJ) avec animation de marche, vus de dos,
-  caméra orbitale en troisième personne.
+- **Création de personnage** (style Sims) au lancement : aperçu 3D en direct, choix
+  de la peau, des cheveux, du haut, du pantalon et du nom (mémorisé).
+- **Personnages 3D** (capsules arrondies) avec animation de marche, caméra 3e personne.
+- **Rendu cinématique** : bloom (néons/lumières qui rayonnent), reflets sur la route
+  mouillée, env-map, luminosité réglable (menu pause).
 - **Déplacement fluide** ZQSD / WASD + course (Shift).
 - **Ville de nuit** : rue principale, trottoirs, immeubles, magasin *24/7 City Mart*,
   *Sunset Apartments*, lampadaires, voitures, poubelles, néons.
@@ -168,11 +172,11 @@ nightfall-city/
 
 ## 🔭 Prochaines améliorations possibles
 
-- Modèles GLTF importés (vrais personnages riggés, nécessite des fichiers d'assets).
+- **Modèles GLTF importés** (vrais personnages/voitures réalistes) — c'est l'étape
+  nécessaire pour un rendu type GTA ; il faut fournir des fichiers `.glb`.
 - Système de police / réputation criminelle.
-- Salles / serveurs nommés + persistance côté serveur multijoueur.
 - Intérieurs de bâtiments accessibles.
 
 ---
 
-*Prototype — version 0.8.0*
+*Prototype — version 0.9.0*
