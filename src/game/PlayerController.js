@@ -47,7 +47,8 @@ export default class PlayerController {
     this.modelHolder = null;
     this.activeModel = null;
     this.gltfReady = false;
-    this._avatarUrl = '/models/avatar_default.glb';
+    this.DEFAULT_AVATAR = '/models/avatar_default.glb';
+    this._avatarUrl = this.DEFAULT_AVATAR;
     this._anims = {
       idle: '/models/anim_idle.glb',
       walk: '/models/anim_walk.glb',
@@ -72,6 +73,10 @@ export default class PlayerController {
         if (this.gltfChar !== char) return; // a newer avatar was requested
         this.gltfReady = true;
         this.setOutfit(this.outfitId);
+      },
+      onError: () => {
+        // A custom avatar failed (e.g. offline): fall back to the default one
+        if (this.gltfChar === char && url !== this.DEFAULT_AVATAR) this._loadAvatar(this.DEFAULT_AVATAR);
       },
     });
     this.gltfChar = char;

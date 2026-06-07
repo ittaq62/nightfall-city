@@ -12,7 +12,7 @@ function makeInPlace(clip) {
 // Loads a rigged .glb character. Animations can be baked into the file, or
 // loaded from separate .glb clip files (e.g. the Ready Player Me animation library).
 export default class GLTFCharacter {
-  constructor(url, { scale = 1, yOffset = 0, targetHeight = null, animations = null, onReady } = {}) {
+  constructor(url, { scale = 1, yOffset = 0, targetHeight = null, animations = null, onReady, onError } = {}) {
     this.group = new THREE.Group();
     this.ready = false;
     this.mixer = null;
@@ -29,7 +29,10 @@ export default class GLTFCharacter {
       url,
       (gltf) => this._onLoad(gltf, onReady),
       undefined,
-      (err) => console.warn('[GLTFCharacter] load failed:', url, err)
+      (err) => {
+        console.warn('[GLTFCharacter] load failed:', url, err);
+        if (onError) onError(err);
+      }
     );
   }
 
