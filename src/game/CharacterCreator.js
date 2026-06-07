@@ -16,6 +16,7 @@ export const DEFAULT_APPEARANCE = {
   hair: 0x1a1410,
   outfit: 0x3a3a4c,
   pants: 0x24242e,
+  avatarUrl: '',
 };
 
 export function loadAppearance() {
@@ -65,8 +66,10 @@ export default class CharacterCreator {
   }
 
   rebuildModel() {
-    // Show the realistic avatar (matches the in-game player)
-    this.model = new GLTFCharacter('/models/avatar_male.glb', {
+    if (this.model) this.pivot.remove(this.model.group);
+    // Show the chosen avatar (custom RPM URL if provided, else the default)
+    const url = this.appearance.avatarUrl || '/models/avatar_male.glb';
+    this.model = new GLTFCharacter(url, {
       scale: 1,
       animations: { idle: '/models/anim_idle.glb' },
     });
@@ -100,12 +103,23 @@ export default class CharacterCreator {
       nameInput.addEventListener('input', () => { this.appearance.name = nameInput.value; });
     }
 
+    // Ready Player Me avatar URL
+    const rpmInput = document.getElementById('rpm-input');
+    if (rpmInput) {
+      rpmInput.value = this.appearance.avatarUrl || '';
+      rpmInput.addEventListener('change', () => {
+        this.appearance.avatarUrl = rpmInput.value.trim();
+        this.rebuildModel(); // preview the custom avatar
+      });
+    }
+
     // Play button
     const playBtn = document.getElementById('cc-play');
     if (playBtn) {
       playBtn.onclick = () => {
         const nm = (nameInput && nameInput.value.trim()) || 'Alex Mercer';
         this.appearance.name = nm.slice(0, 16);
+        if (rpmInput) this.appearance.avatarUrl = rpmInput.value.trim();
         try { localStorage.setItem(APPEARANCE_KEY, JSON.stringify(this.appearance)); } catch (e) { /* ignore */ }
         this.active = false;
         if (this.onPlay) this.onPlay({ ...this.appearance });

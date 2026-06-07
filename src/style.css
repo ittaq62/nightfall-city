@@ -115,8 +115,21 @@ body {
   margin-bottom: 14px;
 }
 #name-input:focus { border-color: #f5a623; }
-.cc-note { font-size: 0.78rem; color: #9aa; line-height: 1.5; margin: 14px 0; }
+.cc-note { font-size: 0.78rem; color: #9aa; line-height: 1.5; margin: 14px 0 8px; }
 .cc-note strong { color: #f5a623; }
+#rpm-input {
+  width: 100%;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: #cde;
+  font-size: 0.78rem;
+  font-family: inherit;
+  outline: none;
+  margin-bottom: 14px;
+}
+#rpm-input:focus { border-color: #c08adf; }
 .cc-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .cc-row > span { width: 70px; font-size: 0.82rem; color: #ccc; }
 .cc-swatches { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }

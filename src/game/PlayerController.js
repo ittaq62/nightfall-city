@@ -46,18 +46,33 @@ export default class PlayerController {
     this.modelHolder = null;
     this.activeModel = null;
     this.gltfReady = false;
+    this._anims = {
+      idle: '/models/anim_idle.glb',
+      walk: '/models/anim_walk.glb',
+      run: '/models/anim_run.glb',
+    };
 
     // Realistic rigged character (Ready Player Me avatar + animation library)
     this.gltfChar = new GLTFCharacter('/models/avatar_male.glb', {
       scale: 1,
-      animations: {
-        idle: '/models/anim_idle.glb',
-        walk: '/models/anim_walk.glb',
-        run: '/models/anim_run.glb',
-      },
+      animations: this._anims,
       onReady: () => {
         this.gltfReady = true;
         this.setOutfit(this.outfitId); // show avatar + apply current outfit accessories
+      },
+    });
+  }
+
+  // Load a custom Ready Player Me (or any RPM-rig) avatar by URL
+  setRealisticAvatar(url) {
+    if (!url) return;
+    this.gltfReady = false;
+    this.gltfChar = new GLTFCharacter(url, {
+      scale: 1,
+      animations: this._anims,
+      onReady: () => {
+        this.gltfReady = true;
+        this.setOutfit(this.outfitId);
       },
     });
 
@@ -106,6 +121,7 @@ export default class PlayerController {
   setAppearance(app) {
     if (app.skin != null) this.appearance.skin = app.skin;
     if (app.hair != null) this.appearance.hair = app.hair;
+    if (app.avatarUrl) this.setRealisticAvatar(app.avatarUrl);
     this.setOutfit(app.outfitId || this.outfitId || 'realistic');
   }
 
