@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import CharacterModel from './CharacterModel.js';
+import GLTFCharacter from './GLTFCharacter.js';
 
 export const APPEARANCE_KEY = 'nightfall-appearance-v1';
 
@@ -61,11 +61,12 @@ export default class CharacterCreator {
 
     this.pivot = new THREE.Group();
     this.scene.add(this.pivot);
+    this.clock = new THREE.Clock();
   }
 
   rebuildModel() {
-    if (this.model) this.pivot.remove(this.model.group);
-    this.model = new CharacterModel(this.appearance);
+    // Show the realistic GLB character (matches the in-game player)
+    this.model = new GLTFCharacter('/models/Soldier.glb', { scale: 1 });
     this.pivot.add(this.model.group);
   }
 
@@ -112,6 +113,8 @@ export default class CharacterCreator {
   animate() {
     if (!this.active) return;
     requestAnimationFrame(() => this.animate());
+    const delta = this.clock.getDelta();
+    if (this.model) this.model.update(delta, 0); // idle animation
     this.pivot.rotation.y += 0.012;
     this.renderer.render(this.scene, this.camera);
   }

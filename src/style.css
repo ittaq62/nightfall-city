@@ -115,6 +115,8 @@ body {
   margin-bottom: 14px;
 }
 #name-input:focus { border-color: #f5a623; }
+.cc-note { font-size: 0.78rem; color: #9aa; line-height: 1.5; margin: 14px 0; }
+.cc-note strong { color: #f5a623; }
 .cc-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .cc-row > span { width: 70px; font-size: 0.82rem; color: #ccc; }
 .cc-swatches { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
