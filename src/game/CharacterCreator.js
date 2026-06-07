@@ -1,27 +1,19 @@
 import * as THREE from 'three';
-import CharacterModel from './CharacterModel.js';
+import GLTFCharacter from './GLTFCharacter.js';
 
-export const APPEARANCE_KEY = 'nightfall-appearance-v2';
+export const APPEARANCE_KEY = 'nightfall-appearance-v3';
 
-const SWATCHES = {
-  skin: [0x8a6a4a, 0x6b4f3a, 0xb8895e, 0x5a4030, 0xe0b48c, 0x3d2b1f],
-  hair: [0x1a1410, 0x000000, 0x5a3a1a, 0xa9772f, 0xb0b0b0, 0x7a2020, 0x4a3a8a],
-};
+// Default realistic avatar shipped with the game (used until the player customizes one)
+export const DEFAULT_AVATAR = '/models/avatar_default.glb';
 
-const HAIRSTYLES = [
-  { id: 'short', label: 'Court' },
-  { id: 'buzz', label: 'Rase' },
-  { id: 'curly', label: 'Boucle' },
-  { id: 'long', label: 'Long' },
-  { id: 'bun', label: 'Chignon' },
-  { id: 'bald', label: 'Chauve' },
-];
+// Ready Player Me creator subdomain. "demo" works without an account; if you create a
+// free Ready Player Me developer account you can replace it with your own subdomain.
+const RPM_SUBDOMAIN = 'demo';
+const RPM_URL = `https://${RPM_SUBDOMAIN}.readyplayer.me/avatar?frameApi&clearCache&bodyType=fullbody`;
 
 export const DEFAULT_APPEARANCE = {
   name: 'Alex Mercer',
-  skin: 0x8a6a4a,
-  hair: 0x1a1410,
-  hairStyle: 'short',
+  avatarUrl: DEFAULT_AVATAR,
 };
 
 export function loadAppearance() {
@@ -36,12 +28,14 @@ export default class CharacterCreator {
   constructor(canvas) {
     this.canvas = canvas;
     this.appearance = loadAppearance();
+    if (!this.appearance.avatarUrl) this.appearance.avatarUrl = DEFAULT_AVATAR;
     this.onPlay = null;
     this.active = true;
+    this.preview = null;
 
     this.initScene();
     this.buildUI();
-    this.rebuildModel();
+    this.loadPreview(this.appearance.avatarUrl);
     this.animate();
   }
 
@@ -50,18 +44,18 @@ export default class CharacterCreator {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.setSize(this.canvas.clientWidth || 280, this.canvas.clientHeight || 380, false);
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.3;
+    this.renderer.toneMappingExposure = 1.25;
 
     this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(32, (this.canvas.clientWidth || 280) / (this.canvas.clientHeight || 380), 0.1, 50);
-    this.camera.position.set(0, 1.2, 3.6);
-    this.camera.lookAt(0, 1.05, 0);
+    this.camera = new THREE.PerspectiveCamera(30, (this.canvas.clientWidth || 280) / (this.canvas.clientHeight || 380), 0.1, 50);
+    this.camera.position.set(0, 1.0, 3.9);
+    this.camera.lookAt(0, 0.95, 0);
 
-    this.scene.add(new THREE.AmbientLight(0xffffff, 1.2));
-    const key = new THREE.DirectionalLight(0xfff0e0, 1.5);
+    this.scene.add(new THREE.AmbientLight(0xffffff, 1.1));
+    const key = new THREE.DirectionalLight(0xfff0e0, 1.6);
     key.position.set(2, 4, 3);
     this.scene.add(key);
-    const rim = new THREE.DirectionalLight(0x6688ff, 0.7);
+    const rim = new THREE.DirectionalLight(0x6688ff, 0.8);
     rim.position.set(-3, 2, -2);
     this.scene.add(rim);
 
@@ -70,59 +64,51 @@ export default class CharacterCreator {
     this.clock = new THREE.Clock();
   }
 
-  rebuildModel() {
-    if (this.model) this.pivot.remove(this.model.group);
-    this.model = new CharacterModel({
-      skin: this.appearance.skin,
-      hair: this.appearance.hair,
-      hairStyle: this.appearance.hairStyle,
-      outfit: 0x3a4a6a,
-      pants: 0x262630,
+  // Load (or reload) the realistic avatar shown in the live preview
+  loadPreview(url) {
+    if (this.preview && this.preview.group && this.preview.group.parent) {
+      this.pivot.remove(this.preview.group);
+    }
+    this.previewLoading = true;
+    const setHint = (msg) => { const el = document.getElementById('cc-avatar-status'); if (el) el.textContent = msg; };
+    setHint('Chargement de l’avatar…');
+    this.preview = new GLTFCharacter(url, {
+      targetHeight: 1.8,
+      animations: { idle: '/models/anim_idle.glb' },
+      onReady: () => {
+        this.previewLoading = false;
+        if (this.preview) this.pivot.add(this.preview.group);
+        setHint('');
+      },
     });
-    this.pivot.add(this.model.group);
+    // Fallback if a custom avatar fails to load (e.g. offline): keep the default
+    this._previewTimer = setTimeout(() => {
+      if (this.previewLoading && url !== DEFAULT_AVATAR) {
+        setHint('Avatar indisponible — modèle par défaut');
+        this.appearance.avatarUrl = DEFAULT_AVATAR;
+        this.loadPreview(DEFAULT_AVATAR);
+      }
+    }, 12000);
   }
 
   buildUI() {
-    document.querySelectorAll('.cc-swatches').forEach((container) => {
-      const cat = container.dataset.cat;
-      container.innerHTML = '';
-      for (const color of SWATCHES[cat]) {
-        const btn = document.createElement('button');
-        btn.className = 'cc-swatch';
-        btn.style.background = '#' + color.toString(16).padStart(6, '0');
-        if (color === this.appearance[cat]) btn.classList.add('selected');
-        btn.onclick = () => {
-          this.appearance[cat] = color;
-          container.querySelectorAll('.cc-swatch').forEach((s) => s.classList.remove('selected'));
-          btn.classList.add('selected');
-          this.rebuildModel();
-        };
-        container.appendChild(btn);
-      }
-    });
-
-    const styleBox = document.getElementById('cc-hairstyles');
-    if (styleBox) {
-      styleBox.innerHTML = '';
-      for (const h of HAIRSTYLES) {
-        const b = document.createElement('button');
-        b.className = 'cc-style';
-        b.textContent = h.label;
-        if (h.id === this.appearance.hairStyle) b.classList.add('selected');
-        b.onclick = () => {
-          this.appearance.hairStyle = h.id;
-          styleBox.querySelectorAll('.cc-style').forEach((s) => s.classList.remove('selected'));
-          b.classList.add('selected');
-          this.rebuildModel();
-        };
-        styleBox.appendChild(b);
-      }
-    }
-
     const nameInput = document.getElementById('name-input');
     if (nameInput) {
       nameInput.value = this.appearance.name;
       nameInput.addEventListener('input', () => { this.appearance.name = nameInput.value; });
+    }
+
+    // Open the Ready Player Me creator (embedded in-game) to personalize the avatar
+    const customBtn = document.getElementById('cc-customize');
+    if (customBtn) customBtn.onclick = () => this.openRPM();
+
+    const rpmClose = document.getElementById('rpm-close');
+    if (rpmClose) rpmClose.onclick = () => this.closeRPM();
+
+    // Listen once for messages coming from the Ready Player Me iframe
+    if (!this._rpmListener) {
+      this._rpmListener = (event) => this.onRPMMessage(event);
+      window.addEventListener('message', this._rpmListener);
     }
 
     const playBtn = document.getElementById('cc-play');
@@ -130,10 +116,53 @@ export default class CharacterCreator {
       playBtn.onclick = () => {
         const nm = (nameInput && nameInput.value.trim()) || 'Alex Mercer';
         this.appearance.name = nm.slice(0, 16);
-        try { localStorage.setItem(APPEARANCE_KEY, JSON.stringify(this.appearance)); } catch (e) { /* ignore */ }
+        this.save();
         this.active = false;
         if (this.onPlay) this.onPlay({ ...this.appearance });
       };
+    }
+  }
+
+  save() {
+    try { localStorage.setItem(APPEARANCE_KEY, JSON.stringify(this.appearance)); } catch (e) { /* ignore */ }
+  }
+
+  // ---- Ready Player Me embedded creator ----
+  openRPM() {
+    const overlay = document.getElementById('rpm-overlay');
+    const iframe = document.getElementById('rpm-iframe');
+    if (!overlay || !iframe) return;
+    if (!iframe.getAttribute('src')) iframe.setAttribute('src', RPM_URL);
+    overlay.classList.remove('hidden');
+  }
+
+  closeRPM() {
+    const overlay = document.getElementById('rpm-overlay');
+    if (overlay) overlay.classList.add('hidden');
+  }
+
+  onRPMMessage(event) {
+    let json;
+    try { json = typeof event.data === 'string' ? JSON.parse(event.data) : event.data; } catch (e) { return; }
+    if (!json || json.source !== 'readyplayerme') return;
+
+    const iframe = document.getElementById('rpm-iframe');
+    // Subscribe to all v1 events once the frame is ready
+    if (json.eventName === 'v1.frame.ready' && iframe && iframe.contentWindow) {
+      iframe.contentWindow.postMessage(
+        JSON.stringify({ target: 'readyplayerme', type: 'subscribe', eventName: 'v1.**' }),
+        '*'
+      );
+    }
+    // The user finished: we receive the avatar .glb URL
+    if (json.eventName === 'v1.avatar.exported') {
+      const url = json.data && json.data.url;
+      if (url) {
+        this.appearance.avatarUrl = url;
+        this.save();
+        this.loadPreview(url);
+      }
+      this.closeRPM();
     }
   }
 
@@ -141,10 +170,14 @@ export default class CharacterCreator {
     if (!this.active) return;
     requestAnimationFrame(() => this.animate());
     const delta = this.clock.getDelta();
-    if (this.model) this.model.update(delta, 0);
-    this.pivot.rotation.y += 0.01;
+    if (this.preview && this.preview.ready) this.preview.update(delta, 0);
+    this.pivot.rotation.y += 0.008;
     this.renderer.render(this.scene, this.camera);
   }
 
-  stop() { this.active = false; }
+  stop() {
+    this.active = false;
+    if (this._rpmListener) { window.removeEventListener('message', this._rpmListener); this._rpmListener = null; }
+    if (this._previewTimer) clearTimeout(this._previewTimer);
+  }
 }

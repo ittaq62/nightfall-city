@@ -24,15 +24,29 @@
           <div class="cc-controls">
             <label class="cc-label">Nom du personnage</label>
             <input id="name-input" maxlength="16" value="Alex Mercer" />
-            <div class="cc-row"><span>Peau</span><div class="cc-swatches" data-cat="skin"></div></div>
-            <div class="cc-row"><span>Cheveux</span><div class="cc-swatches" data-cat="hair"></div></div>
-            <div class="cc-row"><span>Coiffure</span><div class="cc-styles" id="cc-hairstyles"></div></div>
-            <p class="cc-note">Habille-toi ensuite à la <strong>Friperie</strong> et prends un
-              <strong>métier</strong> en ville pour changer de tenue.</p>
+            <button id="cc-customize" class="cc-customize">🎨 Personnaliser mon avatar</button>
+            <div id="cc-avatar-status" class="cc-avatar-status"></div>
+            <p class="cc-note">Crée un <strong>avatar réaliste</strong> (visage, peau, cheveux,
+              tenue) directement dans le jeu. Tu pourras ensuite t'habiller à la
+              <strong>Friperie</strong> et prendre un <strong>métier</strong> en ville.</p>
             <button id="cc-play">Jouer</button>
             <button id="btn-newgame">Reinitialiser la sauvegarde</button>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Ready Player Me embedded avatar creator -->
+    <div id="rpm-overlay" class="hidden">
+      <div class="rpm-frame-wrap">
+        <div class="rpm-bar">
+          <span class="rpm-title">🎨 Crée ton avatar</span>
+          <button id="rpm-close" title="Fermer">✕</button>
+        </div>
+        <iframe id="rpm-iframe" allow="camera *; microphone *; clipboard-write"
+          title="Ready Player Me"></iframe>
+        <div class="rpm-hint">Choisis ton visage, ta coiffure et ta tenue, puis valide
+          dans Ready Player Me : ton avatar apparaîtra dans le jeu.</div>
       </div>
     </div>
 
