@@ -114,8 +114,10 @@ nightfall-city/
 
 - **Création de personnage** (style Sims) au lancement : aperçu 3D en direct, choix
   de la peau, des cheveux, du haut, du pantalon et du nom (mémorisé).
-- **Personnage 3D réaliste** : avatar humain (Ready Player Me) animé (marche / course / idle).
-  Tu peux **importer ton propre avatar** en collant son lien `.glb` dans le créateur.
+- **Personnage personnalisable** (façon Sims) : choisis **peau, couleur de cheveux,
+  coiffure** dans le créateur, puis habille-toi en ville. Le modèle s'anime
+  (marche / course / idle) et porte les tenues/uniformes qui s'ajustent dessus.
+- **Avatar réaliste** (Ready Player Me) disponible comme tenue « réaliste » dans la garde-robe.
 - **Tenues & apparence** : **friperie** pour acheter/équiper des tenues (hoodie, costume,
   survêtement, ouvrier, médecin…) qui **changent l'apparence**. Tenue de **métier** automatique :
   deviens **policier** au commissariat → uniforme + casquette + gilet.
