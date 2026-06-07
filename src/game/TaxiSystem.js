@@ -35,7 +35,7 @@ export default class TaxiSystem {
       new THREE.MeshBasicMaterial({ color: 0xf5c542, side: THREE.DoubleSide, transparent: true, opacity: 0.8 })
     );
     this.ring.rotation.x = -Math.PI / 2;
-    this.ring.position.y = 0.07;
+    this.ring.position.y = 0.13;
     this.ring.visible = false;
     this.scene.add(this.ring);
 
@@ -80,7 +80,7 @@ export default class TaxiSystem {
   }
 
   showRing(pos, color) {
-    this.ring.position.set(pos.x, 0.07, pos.z);
+    this.ring.position.set(pos.x, 0.13, pos.z);
     this.ring.material.color.setHex(color);
     this.ring.visible = true;
   }

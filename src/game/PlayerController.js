@@ -36,10 +36,10 @@ export default class PlayerController {
   buildModel() {
     // Articulated humanoid (hoodie look)
     this.character = new CharacterModel({
-      skin: 0x6b4f3a,
-      outfit: 0x232330,
-      pants: 0x15151c,
-      hair: 0x0d0d0d,
+      skin: 0x8a6a4a,
+      outfit: 0x3e3e52,
+      pants: 0x2a2a36,
+      hair: 0x1a1a1a,
     });
     this.group = this.character.group;
     this.group.position.copy(this.position);

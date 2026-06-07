@@ -93,6 +93,9 @@ export default class Game {
     this.sun.shadow.camera.right = 70;
     this.sun.shadow.camera.top = 70;
     this.sun.shadow.camera.bottom = -70;
+    // Prevent shadow acne (the diagonal artifacts on flat ground)
+    this.sun.shadow.bias = -0.0004;
+    this.sun.shadow.normalBias = 0.05;
     this.scene.add(this.sun);
   }
 

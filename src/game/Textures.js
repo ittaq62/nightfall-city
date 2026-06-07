@@ -25,15 +25,8 @@ function toTexture(cv, repeatX, repeatY) {
 }
 
 export function makeAsphalt(repeatX = 1, repeatY = 1) {
-  const { cv, ctx } = noiseCanvas(256, '#3b3c46', { count: 2400, min: 1, max: 3, r: 150, g: 150, b: 170, alpha: 0.18 });
-  ctx.strokeStyle = 'rgba(0,0,0,0.4)';
-  ctx.lineWidth = 1;
-  for (let i = 0; i < 9; i++) {
-    ctx.beginPath();
-    ctx.moveTo(Math.random() * 256, Math.random() * 256);
-    ctx.lineTo(Math.random() * 256, Math.random() * 256);
-    ctx.stroke();
-  }
+  // Only fine grain - no straight "cracks", which tile into ugly diagonal patterns.
+  const { cv } = noiseCanvas(256, '#3b3c46', { count: 2600, min: 1, max: 2, r: 150, g: 150, b: 170, alpha: 0.16 });
   return toTexture(cv, repeatX, repeatY);
 }
 

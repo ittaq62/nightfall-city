@@ -51,22 +51,25 @@ export default class CityBuilder {
 
   buildRoads() {
     // Main horizontal road
-    const roadH = new THREE.Mesh(
-      new THREE.PlaneGeometry(120, 12),
-      new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.55, metalness: 0.3, map: makeAsphalt(30, 3) })
-    );
+    // polygonOffset pulls the road slightly forward in the depth buffer so it
+    // never z-fights with the ground plane underneath.
+    const roadMat = () => new THREE.MeshStandardMaterial({
+      color: 0xffffff, roughness: 0.55, metalness: 0.3,
+      polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2,
+    });
+
+    const mH = roadMat(); mH.map = makeAsphalt(30, 3);
+    const roadH = new THREE.Mesh(new THREE.PlaneGeometry(120, 12), mH);
     roadH.rotation.x = -Math.PI / 2;
-    roadH.position.y = 0.01;
+    roadH.position.y = 0.04;
     roadH.receiveShadow = true;
     this.scene.add(roadH);
 
     // Cross road
-    const roadV = new THREE.Mesh(
-      new THREE.PlaneGeometry(12, 120),
-      new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.55, metalness: 0.3, map: makeAsphalt(3, 30) })
-    );
+    const mV = roadMat(); mV.map = makeAsphalt(3, 30);
+    const roadV = new THREE.Mesh(new THREE.PlaneGeometry(12, 120), mV);
     roadV.rotation.x = -Math.PI / 2;
-    roadV.position.y = 0.01;
+    roadV.position.y = 0.04;
     roadV.receiveShadow = true;
     this.scene.add(roadV);
 
@@ -76,14 +79,14 @@ export default class CityBuilder {
       if (Math.abs(x) < 8) continue;
       const dash = new THREE.Mesh(new THREE.PlaneGeometry(3, 0.3), lineMat);
       dash.rotation.x = -Math.PI / 2;
-      dash.position.set(x, 0.02, 0);
+      dash.position.set(x, 0.09, 0);
       this.scene.add(dash);
     }
     for (let z = -55; z <= 55; z += 6) {
       if (Math.abs(z) < 8) continue;
       const dash = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 3), lineMat);
       dash.rotation.x = -Math.PI / 2;
-      dash.position.set(0, 0.02, z);
+      dash.position.set(0, 0.09, z);
       this.scene.add(dash);
     }
   }
@@ -308,7 +311,7 @@ export default class CityBuilder {
       new THREE.MeshStandardMaterial({ color: 0x18301c, roughness: 1 })
     );
     grass.rotation.x = -Math.PI / 2;
-    grass.position.set(cx, 0.04, cz);
+    grass.position.set(cx, 0.05, cz);
     this.scene.add(grass);
     this.minimapObjects.push({ x: cx, z: cz, w: 18, d: 18, color: '#1f3a24' });
 
@@ -375,14 +378,14 @@ export default class CityBuilder {
     });
     const pad = new THREE.Mesh(new THREE.CircleGeometry(4, 32), padMat);
     pad.rotation.x = -Math.PI / 2;
-    pad.position.set(zoneX, 0.05, zoneZ);
+    pad.position.set(zoneX, 0.12, zoneZ);
     this.scene.add(pad);
 
     // Glowing border ring
     const ringMat = new THREE.MeshBasicMaterial({ color: 0x44ccff, side: THREE.DoubleSide });
     const ring = new THREE.Mesh(new THREE.RingGeometry(3.8, 4.2, 32), ringMat);
     ring.rotation.x = -Math.PI / 2;
-    ring.position.set(zoneX, 0.06, zoneZ);
+    ring.position.set(zoneX, 0.14, zoneZ);
     this.scene.add(ring);
     this.deliveryRing = ring;
 
@@ -418,13 +421,13 @@ export default class CityBuilder {
     });
     const pad = new THREE.Mesh(new THREE.CircleGeometry(2.2, 32), padMat);
     pad.rotation.x = -Math.PI / 2;
-    pad.position.set(zoneX, 0.05, zoneZ);
+    pad.position.set(zoneX, 0.12, zoneZ);
     this.scene.add(pad);
 
     const ringMat = new THREE.MeshBasicMaterial({ color: 0x44ff66, side: THREE.DoubleSide });
     const ring = new THREE.Mesh(new THREE.RingGeometry(2.1, 2.4, 32), ringMat);
     ring.rotation.x = -Math.PI / 2;
-    ring.position.set(zoneX, 0.06, zoneZ);
+    ring.position.set(zoneX, 0.14, zoneZ);
     this.scene.add(ring);
     this.shopRing = ring;
 
@@ -452,7 +455,7 @@ export default class CityBuilder {
     });
     const pad = new THREE.Mesh(new THREE.CircleGeometry(2.2, 32), padMat);
     pad.rotation.x = -Math.PI / 2;
-    pad.position.set(zoneX, 0.05, zoneZ);
+    pad.position.set(zoneX, 0.12, zoneZ);
     this.scene.add(pad);
 
     const ring = new THREE.Mesh(
@@ -460,7 +463,7 @@ export default class CityBuilder {
       new THREE.MeshBasicMaterial({ color: 0xf5c542, side: THREE.DoubleSide })
     );
     ring.rotation.x = -Math.PI / 2;
-    ring.position.set(zoneX, 0.06, zoneZ);
+    ring.position.set(zoneX, 0.14, zoneZ);
     this.scene.add(ring);
     this.bankRing = ring;
 
@@ -482,7 +485,7 @@ export default class CityBuilder {
     });
     const pad = new THREE.Mesh(new THREE.CircleGeometry(2, 32), padMat);
     pad.rotation.x = -Math.PI / 2;
-    pad.position.set(zoneX, 0.05, zoneZ);
+    pad.position.set(zoneX, 0.12, zoneZ);
     this.scene.add(pad);
 
     // Sign pole
