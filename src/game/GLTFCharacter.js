@@ -90,6 +90,61 @@ export default class GLTFCharacter {
     });
   }
 
+  clearAccessories() {
+    if (this._acc) for (const m of this._acc) if (m.parent) m.parent.remove(m);
+    this._acc = [];
+  }
+
+  // Attach simple outfit accessories on top of the realistic avatar (no ugly model swap)
+  attachAccessories(list) {
+    this.clearAccessories();
+    this._acc = [];
+    const add = (geo, mat, x, y, z) => {
+      const m = new THREE.Mesh(geo, mat);
+      m.position.set(x, y, z);
+      m.castShadow = true;
+      this.group.add(m);
+      this._acc.push(m);
+      return m;
+    };
+    const mk = (color, rough = 0.6) => new THREE.MeshStandardMaterial({ color, roughness: rough });
+
+    for (const acc of list) {
+      if (acc === 'cap') {
+        const m = mk(0x121a35);
+        const d = add(new THREE.SphereGeometry(0.13, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.5), m, 0, 1.63, 0);
+        d.scale.set(1.2, 0.7, 1.2);
+        add(new THREE.BoxGeometry(0.24, 0.04, 0.14), m, 0, 1.61, 0.15);
+      } else if (acc === 'helmet') {
+        const m = mk(0xf0b020, 0.5);
+        const d = add(new THREE.SphereGeometry(0.15, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.5), m, 0, 1.62, 0);
+        d.scale.set(1.1, 0.85, 1.1);
+        add(new THREE.CylinderGeometry(0.19, 0.19, 0.03, 16), m, 0, 1.58, 0);
+      } else if (acc === 'beanie') {
+        const b = add(new THREE.SphereGeometry(0.15, 16, 12, 0, Math.PI * 2, 0, Math.PI * 0.62), mk(0x202020, 0.9), 0, 1.56, 0);
+        b.scale.set(1.1, 0.9, 1.1);
+      } else if (acc === 'glasses') {
+        add(new THREE.BoxGeometry(0.22, 0.05, 0.04), mk(0x0a0a0a, 0.3), 0, 1.55, 0.11);
+      } else if (acc === 'tie') {
+        const m = mk(0x9a1f2a, 0.5);
+        add(new THREE.BoxGeometry(0.05, 0.26, 0.04), m, 0, 1.2, 0.11);
+      } else if (acc === 'vest' || acc === 'vest_police') {
+        const base = acc === 'vest' ? 0xeedd22 : 0x0b1230;
+        add(new THREE.BoxGeometry(0.46, 0.5, 0.3), mk(base, 0.6), 0, 1.25, 0.02);
+        const stripe = mk(acc === 'vest' ? 0xcfd2d6 : 0xdfe6ff, 0.4);
+        add(new THREE.BoxGeometry(0.48, 0.06, 0.32), stripe, 0, 1.32, 0.02);
+        add(new THREE.BoxGeometry(0.48, 0.06, 0.32), stripe, 0, 1.16, 0.02);
+      } else if (acc === 'badge') {
+        add(new THREE.BoxGeometry(0.07, 0.09, 0.03), mk(0xf5c542, 0.3), -0.12, 1.34, 0.14);
+      } else if (acc === 'stetho') {
+        const m = mk(0x3a3a40, 0.4);
+        const r = add(new THREE.TorusGeometry(0.1, 0.018, 8, 20), m, 0, 1.42, 0.05);
+        r.rotation.x = Math.PI / 2;
+        r.scale.set(1, 1, 0.6);
+      }
+    }
+  }
+
   update(delta, speed01) {
     if (!this.ready) return;
     this.mixer.update(delta);

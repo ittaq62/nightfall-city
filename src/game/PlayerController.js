@@ -57,7 +57,7 @@ export default class PlayerController {
       },
       onReady: () => {
         this.gltfReady = true;
-        if (this.outfitId === 'realistic') this._showModel(this.gltfChar);
+        this.setOutfit(this.outfitId); // show avatar + apply current outfit accessories
       },
     });
 
@@ -88,11 +88,14 @@ export default class PlayerController {
 
   setOutfit(outfitId) {
     this.outfitId = outfitId;
-    if (outfitId === 'realistic') {
-      if (this.gltfReady) this._showModel(this.gltfChar);
-      else this._showStylized('casual');
+    if (this.gltfReady) {
+      // Always keep the realistic avatar; outfits add accessories on top of it
+      this._showModel(this.gltfChar);
+      const o = OUTFITS[outfitId] || {};
+      this.gltfChar.attachAccessories(o.accessories || []);
     } else {
-      this._showStylized(outfitId);
+      // Brief fallback only while the avatar is still loading
+      this._showStylized(outfitId === 'realistic' ? 'casual' : outfitId);
     }
   }
 
