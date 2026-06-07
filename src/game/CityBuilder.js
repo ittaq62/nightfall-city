@@ -92,12 +92,21 @@ export default class CityBuilder {
   }
 
   buildSidewalks() {
-    // Sidewalks alongside the main road
+    // Sidewalks alongside the main road, split so they never cross the
+    // perpendicular road at the intersection (gap of |x|<6 / |z|<6).
     const positions = [
-      { x: 0, z: 9, w: 120, d: 4 },
-      { x: 0, z: -9, w: 120, d: 4 },
-      { x: 9, z: 0, w: 4, d: 120 },
-      { x: -9, z: 0, w: 4, d: 120 },
+      // North side (z=9): two segments either side of the vertical road
+      { x: -33, z: 9, w: 54, d: 4 },
+      { x: 33, z: 9, w: 54, d: 4 },
+      // South side (z=-9)
+      { x: -33, z: -9, w: 54, d: 4 },
+      { x: 33, z: -9, w: 54, d: 4 },
+      // East side (x=9): two segments either side of the horizontal road
+      { x: 9, z: -33, w: 4, d: 54 },
+      { x: 9, z: 33, w: 4, d: 54 },
+      // West side (x=-9)
+      { x: -9, z: -33, w: 4, d: 54 },
+      { x: -9, z: 33, w: 4, d: 54 },
     ];
     for (const p of positions) {
       const swMat = new THREE.MeshStandardMaterial({
