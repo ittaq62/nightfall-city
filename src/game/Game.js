@@ -58,7 +58,10 @@ export default class Game {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.45;
+    // Brightness is user-adjustable (pause menu) and remembered
+    let saved = parseFloat(localStorage.getItem('nightfall-brightness'));
+    this.brightness = (saved >= 0.6 && saved <= 3) ? saved : 1.7;
+    this.renderer.toneMappingExposure = this.brightness;
   }
 
   initScene() {
@@ -293,6 +296,11 @@ export default class Game {
       volSlider.value = String(Math.round(this.audio.volume * 100));
       volSlider.addEventListener('input', () => this.audio.setVolume(volSlider.value / 100));
     }
+    const brightSlider = document.getElementById('bright-slider');
+    if (brightSlider) {
+      brightSlider.value = String(Math.round(this.brightness * 100));
+      brightSlider.addEventListener('input', () => this.setBrightness(brightSlider.value / 100));
+    }
 
     // Chat input
     if (chatInput) {
@@ -342,6 +350,12 @@ export default class Game {
   setPaused(p) {
     this.paused = p;
     document.getElementById('hud-pause').classList.toggle('hidden', !p);
+  }
+
+  setBrightness(v) {
+    this.brightness = Math.max(0.6, Math.min(3, v));
+    this.renderer.toneMappingExposure = this.brightness;
+    try { localStorage.setItem('nightfall-brightness', String(this.brightness)); } catch (e) { /* ignore */ }
   }
 
   updatePointerHint() {

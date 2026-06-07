@@ -55,8 +55,8 @@ export default class DayNightCycle {
     this.sun.position.set(Math.cos(ang) * 45, 55, Math.sin(ang) * 45);
 
     // Ambient / hemisphere brighten during the day (night stays clearly readable)
-    this.ambient.intensity = 1.5 + daylight * 0.5;
-    this.hemi.intensity = 1.15 + daylight * 0.4;
+    this.ambient.intensity = 1.65 + daylight * 0.5;
+    this.hemi.intensity = 1.25 + daylight * 0.4;
 
     // Streetlights & neon: full at night, dimmed during the day
     const artificial = 0.15 + (1 - daylight) * 0.85;
