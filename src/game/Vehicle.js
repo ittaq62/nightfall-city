@@ -82,7 +82,16 @@ export default class Vehicle {
     this.group.rotation.y = this.heading;
   }
 
-  update(delta, keys, obstacles) {
+  hitsDynamic(pos, dynamicObstacles, radius) {
+    for (const o of dynamicObstacles) {
+      const dx = pos.x - o.x;
+      const dz = pos.z - o.z;
+      if (dx * dx + dz * dz < radius * radius) return true;
+    }
+    return false;
+  }
+
+  update(delta, keys, obstacles, dynamicObstacles = []) {
     const forwardPressed = keys['KeyW'] || keys['KeyZ'] || keys['ArrowUp'];
     const backPressed = keys['KeyS'] || keys['ArrowDown'];
     const leftPressed = keys['KeyA'] || keys['KeyQ'] || keys['ArrowLeft'];
@@ -116,19 +125,21 @@ export default class Vehicle {
     const dx = fx * this.speed * delta;
     const dz = fz * this.speed * delta;
 
+    const carRadius = 3; // keep clear of other cars
+
     const tryX = this.position.clone();
     tryX.x += dx;
-    if (!checkBoxCollision(tryX, this.radius, obstacles)) {
+    if (!checkBoxCollision(tryX, this.radius, obstacles) && !this.hitsDynamic(tryX, dynamicObstacles, carRadius)) {
       this.position.x = tryX.x;
     } else {
-      this.speed *= 0.3;
+      this.speed *= 0.2;
     }
     const tryZ = this.position.clone();
     tryZ.z += dz;
-    if (!checkBoxCollision(tryZ, this.radius, obstacles)) {
+    if (!checkBoxCollision(tryZ, this.radius, obstacles) && !this.hitsDynamic(tryZ, dynamicObstacles, carRadius)) {
       this.position.z = tryZ.z;
     } else {
-      this.speed *= 0.3;
+      this.speed *= 0.2;
     }
 
     // Spin wheels for visual feedback

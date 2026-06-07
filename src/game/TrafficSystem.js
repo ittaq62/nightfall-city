@@ -192,7 +192,20 @@ export default class TrafficSystem {
       const aheadDist = c.axis === 'x' ? (p.x - x) * c.dir : (p.z - z) * c.dir;
       const playerAhead = lateral < 2.2 && aheadDist > 0 && aheadDist < 7;
 
-      const target = (stopForLight || playerAhead) ? 0 : c.baseSpeed;
+      // Car-following: don't overlap the car ahead in the same lane
+      let nearestAheadAlong = null;
+      let minGap = Infinity;
+      if (!c.turning) {
+        for (const o of this.cars) {
+          if (o === c || o.turning) continue;
+          if (o.axis !== c.axis || o.off !== c.off || o.dir !== c.dir) continue;
+          const gap = (o.along - c.along) * c.dir;
+          if (gap > 0 && gap < minGap) { minGap = gap; nearestAheadAlong = o.along; }
+        }
+      }
+      const carAhead = minGap < 5.5;
+
+      const target = (stopForLight || playerAhead || carAhead) ? 0 : c.baseSpeed;
       c.speed += (target - c.speed) * Math.min(1, delta * 4);
 
       c.along += c.dir * c.speed * delta;
@@ -200,6 +213,13 @@ export default class TrafficSystem {
       if (stopForLight) {
         if (c.dir > 0) c.along = Math.min(c.along, -5.2);
         else c.along = Math.max(c.along, 5.2);
+      }
+
+      // Keep a minimum gap to the car ahead
+      if (nearestAheadAlong !== null) {
+        const limit = nearestAheadAlong - 4.3 * c.dir;
+        if (c.dir > 0) c.along = Math.min(c.along, limit);
+        else c.along = Math.max(c.along, limit);
       }
 
       if (c.along > this.limit) c.along = -this.limit;

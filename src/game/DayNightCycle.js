@@ -2,8 +2,8 @@ import * as THREE from 'three';
 import { clamp } from './Utils.js';
 
 // Color keyframes
-const NIGHT_SKY = new THREE.Color(0x06070f);
-const DAY_SKY = new THREE.Color(0x5b6e8c);   // muted, urban daylight (keeps the noir vibe)
+const NIGHT_SKY = new THREE.Color(0x161a26);  // lifted so the night never goes fully black
+const DAY_SKY = new THREE.Color(0x6678a0);    // muted, urban daylight (keeps the noir vibe)
 const TWILIGHT_SKY = new THREE.Color(0xd9663a);
 
 const NIGHT_SUN = new THREE.Color(0x8899cc);  // cool moonlight
@@ -21,7 +21,7 @@ export default class DayNightCycle {
     this.hud = hud;
 
     this.dayLength = 240; // seconds for a full 24h cycle
-    this.time = 21;       // start the game at 21:00 (true to "Nightfall")
+    this.time = 18;       // start at dusk: well lit, then night falls naturally
 
     this._sky = new THREE.Color();
     this._sunColor = new THREE.Color();
@@ -48,15 +48,15 @@ export default class DayNightCycle {
     this._sunColor.copy(NIGHT_SUN).lerp(DAY_SUN, daylight);
     this._sunColor.lerp(TWILIGHT_SUN, twilight * 0.6);
     this.sun.color.copy(this._sunColor);
-    this.sun.intensity = 0.3 + daylight * 0.85;
+    this.sun.intensity = 0.55 + daylight * 0.8;
 
     // Light swings east -> west across the day (keeps a high angle for clean shadows)
     const ang = (h / 24) * Math.PI * 2 - Math.PI / 2;
     this.sun.position.set(Math.cos(ang) * 45, 55, Math.sin(ang) * 45);
 
-    // Ambient / hemisphere brighten during the day (night stays readable)
-    this.ambient.intensity = 0.7 + daylight * 0.6;
-    this.hemi.intensity = 0.5 + daylight * 0.5;
+    // Ambient / hemisphere brighten during the day (night stays clearly readable)
+    this.ambient.intensity = 1.25 + daylight * 0.55;
+    this.hemi.intensity = 0.95 + daylight * 0.45;
 
     // Streetlights & neon: full at night, dimmed during the day
     const artificial = 0.15 + (1 - daylight) * 0.85;

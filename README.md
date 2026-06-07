@@ -15,7 +15,9 @@ npm run dev
 ```
 
 Puis ouvre l'URL affichée (par défaut `http://localhost:5173`).
-**Clique dans la fenêtre** pour capturer la souris et commencer à jouer.
+**Clique dans la fenêtre** pour capturer la souris : c'est ce qui te permet de **tourner
+la caméra** en bougeant la souris. Un message te le rappelle quand la souris est libre.
+(`Échap` libère la souris et ouvre la pause ; reclique pour reprendre la caméra.)
 
 Pour générer une version de production :
 
@@ -154,7 +156,7 @@ nightfall-city/
   *Utiliser* pour chaque objet, en plus de la barre rapide.
 - **Cycle jour/nuit dynamique** : le ciel, le brouillard, la lumière du soleil/lune et
   l'ambiance évoluent en continu ; les lampadaires et néons s'allument à la tombée de la
-  nuit. Horloge affichée sous la mini-carte (le jeu démarre à 21:00).
+  nuit. Horloge affichée sous la mini-carte (le jeu démarre au crépuscule, vers 18:00).
 - **Météo dynamique** : alternance clair / brouillard / pluie (particules + son de pluie),
   avec densité de brouillard variable. Indicateur météo sur la mini-carte.
 - **Sauvegarde automatique** (localStorage) : argent, réputation, besoins, inventaire,

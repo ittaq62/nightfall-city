@@ -64,7 +64,7 @@ export default class Game {
   initScene() {
     this.scene = new THREE.Scene();
     this.scene.background = new THREE.Color(0x0c0c16);
-    this.scene.fog = new THREE.FogExp2(0x0c0c16, 0.009);
+    this.scene.fog = new THREE.FogExp2(0x12131c, 0.006);
 
     this.camera = new THREE.PerspectiveCamera(
       70,
@@ -194,7 +194,7 @@ export default class Game {
       player: this.player,
       audio: this.audio,
       hud: this.hud,
-      baseFog: 0.009,
+      baseFog: 0.006,
     });
 
     // Save / load progress
@@ -279,7 +279,10 @@ export default class Game {
 
     // Pause menu buttons
     const resumeBtn = document.getElementById('pause-resume');
-    if (resumeBtn) resumeBtn.onclick = () => this.setPaused(false);
+    if (resumeBtn) resumeBtn.onclick = () => {
+      this.setPaused(false);
+      if (this.canvas.requestPointerLock) this.canvas.requestPointerLock();
+    };
     const pauseNewGame = document.getElementById('pause-newgame');
     if (pauseNewGame) pauseNewGame.onclick = () => this.resetGame();
     const volSlider = document.getElementById('vol-slider');
@@ -336,6 +339,17 @@ export default class Game {
   setPaused(p) {
     this.paused = p;
     document.getElementById('hud-pause').classList.toggle('hidden', !p);
+  }
+
+  updatePointerHint() {
+    const el = document.getElementById('pointer-hint');
+    if (!el) return;
+    const overlayHidden = document.getElementById('start-overlay').classList.contains('hidden');
+    const blocked = this.paused || this.hud.isDialogOpen() || this.shop.isOpen ||
+      this.bank.isOpen || this.inventoryUI.isOpen ||
+      document.activeElement === document.getElementById('chat-input');
+    const show = overlayHidden && !blocked && !this.player.pointerLocked;
+    el.classList.toggle('hidden', !show);
   }
 
   togglePause() {
@@ -752,6 +766,8 @@ export default class Game {
     const delta = Math.min(this.clock.getDelta(), 0.1);
     const time = this.clock.elapsedTime;
 
+    this.updatePointerHint();
+
     // When paused, keep rendering but freeze all world updates
     if (this.paused) {
       this.renderer.render(this.scene, this.camera);
@@ -759,7 +775,8 @@ export default class Game {
     }
 
     if (this.mode === 'drive') {
-      this.vehicle.update(delta, this.player.keys, this.city.obstacles);
+      const trafficPositions = this.traffic.cars.map((c) => c.group.position);
+      this.vehicle.update(delta, this.player.keys, this.city.obstacles, trafficPositions);
       this.player.position.copy(this.vehicle.position);
       this.player.group.position.copy(this.vehicle.position);
       this.updateDriveCamera();
