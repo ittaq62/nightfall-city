@@ -81,7 +81,9 @@ nightfall-city/
 │   │   ├── CityBuilder.js      # Construction de la ville (immeubles, rues, néons)
 │   │   ├── NPC.js              # PNJ (Tony, Maria, Vince) + proximité
 │   │   ├── Vehicle.js          # Voiture conduisible (physique arcade)
-│   │   ├── TrafficSystem.js    # Circulation IA + feux de circulation
+│   │   ├── TrafficSystem.js    # Circulation IA + feux + virages
+│   │   ├── TaxiSystem.js       # Métier de taxi (courses)
+│   │   ├── Atmosphere.js       # Particules (fontaine, poussière)
 │   │   ├── OnlinePlayers.js    # Joueurs en ligne simulés (local)
 │   │   ├── Network.js          # Client multijoueur WebSocket
 │   │   ├── Textures.js         # Textures procédurales (canvas)
@@ -116,8 +118,12 @@ nightfall-city/
 - **Voiture conduisible** : approche la voiture (cercle bleu), `E` pour monter, conduis
   avec ZQSD (physique arcade : accélération, direction, freinage, collisions),
   compteur de vitesse + son moteur, `E` pour sortir.
-- **Circulation IA & feux** : des voitures roulent en continu sur les routes, **s'arrêtent
-  aux feux rouges** à l'intersection, et ralentissent si tu leur coupes la route.
+- **Circulation IA & feux** : des voitures roulent en continu, **tournent aux intersections**,
+  **s'arrêtent aux feux rouges** et ralentissent si tu leur coupes la route.
+- **Métier de taxi** : prends un service à la borne *TAXI*, va chercher le client (point bleu),
+  dépose-le à destination (point jaune) — paiement selon la distance. Répétable.
+- **Effets d'ambiance** : jet d'eau de la fontaine, fines particules en suspension et
+  vignette pour une nuit plus immersive.
 - **Multijoueur en réseau** (avec `npm run server`) : les vrais joueurs connectés se voient,
   bougent (**à pied ou en voiture**) et tchattent en temps réel (WebSocket). **Repli automatique**
   sur des joueurs simulés si aucun serveur n'est lancé. Chat interactif (touche `Entrée`).
@@ -160,11 +166,11 @@ nightfall-city/
 
 ## 🔭 Prochaines améliorations possibles
 
-- Modèles GLTF importés (vrais personnages riggés).
-- Virages de l'IA aux intersections.
-- Synchroniser les véhicules et l'état du monde en multijoueur.
-- Salles / serveurs nommés + persistance côté serveur.
+- Modèles GLTF importés (vrais personnages riggés, nécessite des fichiers d'assets).
+- Système de police / réputation criminelle.
+- Salles / serveurs nommés + persistance côté serveur multijoueur.
+- Intérieurs de bâtiments accessibles.
 
 ---
 
-*Prototype — version 0.7.0*
+*Prototype — version 0.8.0*
