@@ -54,7 +54,7 @@ export default class CityBuilder {
     // polygonOffset pulls the road slightly forward in the depth buffer so it
     // never z-fights with the ground plane underneath.
     const roadMat = () => new THREE.MeshStandardMaterial({
-      color: 0xffffff, roughness: 0.55, metalness: 0.3,
+      color: 0xffffff, roughness: 0.32, metalness: 0.65, envMapIntensity: 0.6,
       polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2,
     });
 

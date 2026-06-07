@@ -1,4 +1,9 @@
 import * as THREE from 'three';
+import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
+import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import PlayerController from './PlayerController.js';
 import CityBuilder from './CityBuilder.js';
 import NPC from './NPC.js';
@@ -45,8 +50,24 @@ export default class Game {
 
     this.initRenderer();
     this.initScene();
+    this.initPostFX();
     this.initSystems();
     this.setupEvents();
+  }
+
+  initPostFX() {
+    // Environment map so metallic surfaces (cars, wet road) get subtle reflections
+    const pmrem = new THREE.PMREMGenerator(this.renderer);
+    this.scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    this.scene.environmentIntensity = 0.16;
+
+    // Bloom only for the brightest sources (neon, lamps) - subtle, not a haze
+    const w = window.innerWidth, h = window.innerHeight;
+    this.composer = new EffectComposer(this.renderer);
+    this.composer.addPass(new RenderPass(this.scene, this.camera));
+    this.bloom = new UnrealBloomPass(new THREE.Vector2(w, h), 0.45, 0.4, 1.4);
+    this.composer.addPass(this.bloom);
+    this.composer.addPass(new OutputPass());
   }
 
   initRenderer() {
@@ -349,6 +370,7 @@ export default class Game {
     this.camera.aspect = window.innerWidth / window.innerHeight;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(window.innerWidth, window.innerHeight);
+    if (this.composer) this.composer.setSize(window.innerWidth, window.innerHeight);
   }
 
   setPaused(p) {
@@ -800,7 +822,7 @@ export default class Game {
 
     // When paused, keep rendering but freeze all world updates
     if (this.paused) {
-      this.renderer.render(this.scene, this.camera);
+      this.composer.render();
       return;
     }
 
@@ -844,6 +866,6 @@ export default class Game {
     this.updateNeeds(delta);
     this.renderMinimap();
 
-    this.renderer.render(this.scene, this.camera);
+    this.composer.render();
   }
 }
