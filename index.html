@@ -16,11 +16,22 @@
 
     <!-- Click to play overlay -->
     <div id="start-overlay">
-      <div class="start-content">
+      <div class="cc-wrap">
         <h1>NIGHTFALL CITY</h1>
-        <input id="name-input" maxlength="16" placeholder="Ton nom" value="Alex Mercer" />
-        <p>Cliquez pour jouer</p>
-        <button id="btn-newgame">Nouvelle partie</button>
+        <p class="cc-subtitle">Crée ton personnage</p>
+        <div class="cc-body">
+          <canvas id="cc-canvas" width="280" height="380"></canvas>
+          <div class="cc-controls">
+            <label class="cc-label">Nom</label>
+            <input id="name-input" maxlength="16" value="Alex Mercer" />
+            <div class="cc-row"><span>Peau</span><div class="cc-swatches" data-cat="skin"></div></div>
+            <div class="cc-row"><span>Cheveux</span><div class="cc-swatches" data-cat="hair"></div></div>
+            <div class="cc-row"><span>Haut</span><div class="cc-swatches" data-cat="outfit"></div></div>
+            <div class="cc-row"><span>Pantalon</span><div class="cc-swatches" data-cat="pants"></div></div>
+            <button id="cc-play">Jouer</button>
+            <button id="btn-newgame">Reinitialiser la sauvegarde</button>
+          </div>
+        </div>
       </div>
     </div>
 

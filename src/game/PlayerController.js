@@ -50,6 +50,21 @@ export default class PlayerController {
     this.obstacles = obstacles;
   }
 
+  setAppearance(app) {
+    const pos = this.position.clone();
+    const rotY = this.group ? this.group.rotation.y : 0;
+    const visible = this.group ? this.group.visible : true;
+    if (this.group) this.scene.remove(this.group);
+    this.character = new CharacterModel({
+      skin: app.skin, outfit: app.outfit, pants: app.pants, hair: app.hair,
+    });
+    this.group = this.character.group;
+    this.group.position.copy(pos);
+    this.group.rotation.y = rotY;
+    this.group.visible = visible;
+    this.scene.add(this.group);
+  }
+
   hitsCars(pos) {
     const r = this.radius + 1.6; // player radius + car half-extent
     for (const o of this.dynamicObstacles) {

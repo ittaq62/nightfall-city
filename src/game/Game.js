@@ -8,6 +8,7 @@ import OnlinePlayers from './OnlinePlayers.js';
 import Network from './Network.js';
 import Atmosphere from './Atmosphere.js';
 import TaxiSystem from './TaxiSystem.js';
+import { loadAppearance, APPEARANCE_KEY } from './CharacterCreator.js';
 import HUD from './HUD.js';
 import InventorySystem from './InventorySystem.js';
 import MissionSystem, { jobForRep } from './MissionSystem.js';
@@ -107,9 +108,12 @@ export default class Game {
     this.city = new CityBuilder(this.scene);
     this.city.build();
 
-    // Player
+    // Player (apply saved appearance from the character creator)
     this.player = new PlayerController(this.scene, this.camera, this.canvas);
     this.player.setObstacles(this.city.obstacles);
+    this.appearance = loadAppearance();
+    this.player.setAppearance(this.appearance);
+    this.playerState.name = this.appearance.name || this.playerState.name;
 
     // HUD + systems
     this.hud = new HUD();
@@ -379,7 +383,16 @@ export default class Game {
     if (tab) tab.textContent = `GLOBAL ● ${n}`;
   }
 
-  // Called when the player clicks "play" - applies the chosen name and goes online
+  // Apply a character appearance chosen in the creator
+  applyAppearance(app) {
+    this.appearance = app;
+    this.player.setAppearance(app);
+    if (app.name) this.playerState.name = app.name;
+    this.hud.updatePlayerInfo(this.playerState);
+    try { localStorage.setItem(APPEARANCE_KEY, JSON.stringify(app)); } catch (e) { /* ignore */ }
+  }
+
+  // Called when the player clicks "Jouer" - applies the chosen name and goes online
   beginSession(name) {
     const clean = (name || '').trim().slice(0, 16);
     if (clean) {

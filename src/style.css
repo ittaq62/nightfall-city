@@ -66,14 +66,81 @@ body {
 .start-content {
   text-align: center;
 }
-.start-content h1 {
-  font-size: 4rem;
+.start-content h1, .cc-wrap h1 {
+  font-size: 3.4rem;
   font-weight: 900;
-  letter-spacing: 0.3em;
+  letter-spacing: 0.28em;
   color: #f5a623;
   text-shadow: 0 0 40px rgba(245,166,35,0.5);
-  margin-bottom: 1rem;
+  margin-bottom: 0.3rem;
 }
+
+/* Character creator */
+.cc-wrap { text-align: center; }
+.cc-subtitle { color: #aaa; font-size: 1rem; margin-bottom: 18px; letter-spacing: 0.1em; }
+.cc-body {
+  display: flex;
+  gap: 26px;
+  align-items: stretch;
+  background: rgba(10,10,16,0.85);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 14px;
+  padding: 22px;
+}
+#cc-canvas {
+  width: 280px;
+  height: 380px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #20243a 0%, #0d0f18 100%);
+  border: 1px solid rgba(255,255,255,0.1);
+}
+.cc-controls {
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  justify-content: center;
+}
+.cc-label { font-size: 0.72rem; color: #888; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+#name-input {
+  width: 100%;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(245,166,35,0.4);
+  border-radius: 6px;
+  padding: 9px 12px;
+  color: #fff;
+  font-size: 0.95rem;
+  font-family: inherit;
+  outline: none;
+  margin-bottom: 14px;
+}
+#name-input:focus { border-color: #f5a623; }
+.cc-row { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.cc-row > span { width: 70px; font-size: 0.82rem; color: #ccc; }
+.cc-swatches { display: flex; gap: 6px; flex-wrap: wrap; flex: 1; }
+.cc-swatch {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.2);
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.1s;
+}
+.cc-swatch:hover { transform: scale(1.15); }
+.cc-swatch.selected { border-color: #f5a623; box-shadow: 0 0 8px rgba(245,166,35,0.8); }
+#cc-play {
+  margin-top: 10px;
+  padding: 12px;
+  background: #f5a623;
+  color: #000;
+  border: none;
+  border-radius: 7px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+#cc-play:hover { background: #ffb84d; }
 .start-content p {
   font-size: 1.2rem;
   color: #aaa;
