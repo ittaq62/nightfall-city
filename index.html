@@ -24,9 +24,11 @@
           <div class="cc-controls">
             <label class="cc-label">Nom du personnage</label>
             <input id="name-input" maxlength="16" value="Alex Mercer" />
-            <p class="cc-note">Crée ton avatar perso sur <strong>readyplayer.me</strong>,
-              colle le lien <strong>.glb</strong> ci-dessous (optionnel) :</p>
-            <input id="rpm-input" placeholder="https://models.readyplayer.me/....glb" />
+            <div class="cc-row"><span>Peau</span><div class="cc-swatches" data-cat="skin"></div></div>
+            <div class="cc-row"><span>Cheveux</span><div class="cc-swatches" data-cat="hair"></div></div>
+            <div class="cc-row"><span>Coiffure</span><div class="cc-styles" id="cc-hairstyles"></div></div>
+            <p class="cc-note">Habille-toi ensuite à la <strong>Friperie</strong> et prends un
+              <strong>métier</strong> en ville pour changer de tenue.</p>
             <button id="cc-play">Jouer</button>
             <button id="btn-newgame">Reinitialiser la sauvegarde</button>
           </div>

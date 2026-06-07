@@ -39,8 +39,8 @@ export default class Game {
       bank: 0,
       reputation: 12,
       job: 'Citoyen',
-      outfit: 'realistic',           // currently equipped look
-      ownedOutfits: ['realistic', 'casual'],
+      outfit: 'casual',              // currently equipped look (customizable model)
+      ownedOutfits: ['casual', 'realistic'],
     };
     this.rent = 60; // charged each in-game morning
 
@@ -245,8 +245,8 @@ export default class Game {
       setTimeout(() => this.hud.showNotification('Partie chargee'), 500);
     }
     // Sync the equipped outfit onto the player model
-    if (!this.playerState.ownedOutfits) this.playerState.ownedOutfits = ['realistic', 'casual'];
-    this.player.setOutfit(this.playerState.outfit || 'realistic');
+    if (!this.playerState.ownedOutfits) this.playerState.ownedOutfits = ['casual', 'realistic'];
+    this.player.setOutfit(this.playerState.outfit || 'casual');
 
     this.hud.updatePlayerInfo(this.playerState);
     this.hud.updateNeeds(this.needs);

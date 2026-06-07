@@ -9,6 +9,7 @@ export default class CharacterModel {
     const pants = options.pants ?? 0x24242e;
     const hair = options.hair ?? 0x1a1410;
     const shoes = options.shoes ?? 0x101014;
+    const hairStyle = options.hairStyle ?? 'short';
 
     this.group = new THREE.Group();
     this.phase = Math.random() * Math.PI * 2;
@@ -44,22 +45,37 @@ export default class CharacterModel {
     head.castShadow = true;
     this.group.add(head);
 
-    // Hair cap
-    const hairMesh = new THREE.Mesh(
-      new THREE.SphereGeometry(0.225, 18, 18, 0, Math.PI * 2, 0, Math.PI * 0.62),
-      hairMat
-    );
-    hairMesh.position.y = 1.81;
-    hairMesh.scale.set(0.95, 1.05, 1);
-    this.group.add(hairMesh);
-
-    // Eyes
-    const eyeMat = new THREE.MeshStandardMaterial({ color: 0x141414, roughness: 0.3 });
-    for (const ex of [-0.08, 0.08]) {
-      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.028, 8, 8), eyeMat);
-      eye.position.set(ex, 1.79, 0.19);
-      this.group.add(eye);
+    // Face: eyes (white + iris), eyebrows, nose, mouth
+    const irisMat = new THREE.MeshStandardMaterial({ color: 0x2a1c12, roughness: 0.3 });
+    const whiteMat = new THREE.MeshStandardMaterial({ color: 0xedeae4, roughness: 0.4 });
+    for (const ex of [-0.075, 0.075]) {
+      const white = new THREE.Mesh(new THREE.SphereGeometry(0.035, 12, 12), whiteMat);
+      white.position.set(ex, 1.79, 0.17); white.scale.set(1, 1.15, 0.55);
+      this.group.add(white);
+      const iris = new THREE.Mesh(new THREE.SphereGeometry(0.017, 8, 8), irisMat);
+      iris.position.set(ex, 1.79, 0.195);
+      this.group.add(iris);
     }
+    const browMat = new THREE.MeshStandardMaterial({ color: hair, roughness: 0.95 });
+    for (const ex of [-0.075, 0.075]) {
+      const brow = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.018, 0.03), browMat);
+      brow.position.set(ex, 1.845, 0.185);
+      brow.rotation.z = ex < 0 ? 0.1 : -0.1;
+      this.group.add(brow);
+    }
+    const nose = new THREE.Mesh(new THREE.ConeGeometry(0.028, 0.07, 6), skinMat);
+    nose.position.set(0, 1.755, 0.21);
+    nose.rotation.x = Math.PI / 2 + 0.35;
+    this.group.add(nose);
+    const mouth = new THREE.Mesh(
+      new THREE.BoxGeometry(0.075, 0.014, 0.02),
+      new THREE.MeshStandardMaterial({ color: 0x8a4f48, roughness: 0.6 })
+    );
+    mouth.position.set(0, 1.7, 0.2);
+    this.group.add(mouth);
+
+    // Hair style
+    this._buildHair(hairStyle, hairMat);
 
     // Limbs
     this.leftArm = this._limb(outfitMat, skinMat, 0.46, 0.075);
@@ -128,6 +144,43 @@ export default class CharacterModel {
         ring.scale.set(1, 1, 0.6);
         add(new THREE.BoxGeometry(0.05, 0.05, 0.03), m, 0.1, 1.3, 0.17);
       }
+    }
+  }
+
+  _buildHair(style, mat) {
+    if (style === 'bald') return;
+    const rough = new THREE.MeshStandardMaterial({ color: mat.color, roughness: 1 });
+    const cap = (top, scaleY = 1.05) => {
+      const m = new THREE.Mesh(
+        new THREE.SphereGeometry(0.226, 18, 18, 0, Math.PI * 2, 0, Math.PI * top),
+        rough
+      );
+      m.position.y = 1.81;
+      m.scale.set(0.98, scaleY, 1.0);
+      m.castShadow = true;
+      this.group.add(m);
+      return m;
+    };
+    if (style === 'buzz') {
+      cap(0.5, 0.8);
+    } else if (style === 'curly') {
+      const m = cap(0.72, 0.95);
+      m.geometry = new THREE.IcosahedronGeometry(0.24, 1);
+      m.material = new THREE.MeshStandardMaterial({ color: mat.color, roughness: 1, flatShading: true });
+      m.position.y = 1.85;
+    } else if (style === 'long') {
+      cap(0.62);
+      const back = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.34, 0.16), rough);
+      back.position.set(0, 1.6, -0.1);
+      back.castShadow = true;
+      this.group.add(back);
+    } else if (style === 'bun') {
+      cap(0.58);
+      const bun = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 12), rough);
+      bun.position.set(0, 1.97, -0.04);
+      this.group.add(bun);
+    } else {
+      cap(0.62); // 'short'
     }
   }
 

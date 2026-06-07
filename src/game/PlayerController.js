@@ -41,8 +41,9 @@ export default class PlayerController {
     this.group.position.copy(this.position);
     this.scene.add(this.group);
 
-    this.appearance = { skin: 0x8a6a4a, hair: 0x1a1a1a };
-    this.outfitId = 'realistic';
+    // Fully customizable base character (skin / hair / clothes), default look
+    this.appearance = { skin: 0x8a6a4a, hair: 0x1a1410, hairStyle: 'short' };
+    this.outfitId = 'casual';
     this.modelHolder = null;
     this.activeModel = null;
     this.gltfReady = false;
@@ -52,32 +53,18 @@ export default class PlayerController {
       run: '/models/anim_run.glb',
     };
 
-    // Realistic rigged character (Ready Player Me avatar + animation library)
-    this.gltfChar = new GLTFCharacter('/models/avatar_male.glb', {
-      scale: 1,
-      animations: this._anims,
-      onReady: () => {
-        this.gltfReady = true;
-        this.setOutfit(this.outfitId); // show avatar + apply current outfit accessories
-      },
-    });
-  }
-
-  // Load a custom Ready Player Me (or any RPM-rig) avatar by URL
-  setRealisticAvatar(url) {
-    if (!url) return;
-    this.gltfReady = false;
-    this.gltfChar = new GLTFCharacter(url, {
-      scale: 1,
-      animations: this._anims,
-      onReady: () => {
-        this.gltfReady = true;
-        this.setOutfit(this.outfitId);
-      },
-    });
-
-    // Temporary stylized model until the GLB loads (so the player is visible)
+    // Show the customizable model right away
     this._showStylized('casual');
+
+    // Realistic avatar loaded in the background (used only for the "realistic" outfit)
+    this.gltfChar = new GLTFCharacter('/models/avatar_rpm.glb', {
+      scale: 1,
+      animations: this._anims,
+      onReady: () => {
+        this.gltfReady = true;
+        if (this.outfitId === 'realistic') this.setOutfit('realistic');
+      },
+    });
   }
 
   _showModel(model) {
@@ -94,6 +81,7 @@ export default class PlayerController {
     this.character = new CharacterModel({
       skin: this.appearance.skin,
       hair: o.hair ?? this.appearance.hair,
+      hairStyle: this.appearance.hairStyle,
       outfit: o.outfit,
       pants: o.pants,
       accessories: o.accessories || [],
@@ -103,14 +91,13 @@ export default class PlayerController {
 
   setOutfit(outfitId) {
     this.outfitId = outfitId;
-    if (this.gltfReady) {
-      // Always keep the realistic avatar; outfits add accessories on top of it
-      this._showModel(this.gltfChar);
-      const o = OUTFITS[outfitId] || {};
-      this.gltfChar.attachAccessories(o.accessories || []);
+    if (outfitId === 'realistic') {
+      // The realistic avatar (not customizable, no accessories)
+      if (this.gltfReady) this._showModel(this.gltfChar);
+      else this._showStylized('casual');
     } else {
-      // Brief fallback only while the avatar is still loading
-      this._showStylized(outfitId === 'realistic' ? 'casual' : outfitId);
+      // The customizable model dressed with the chosen outfit + accessories
+      this._showStylized(outfitId);
     }
   }
 
@@ -121,8 +108,8 @@ export default class PlayerController {
   setAppearance(app) {
     if (app.skin != null) this.appearance.skin = app.skin;
     if (app.hair != null) this.appearance.hair = app.hair;
-    if (app.avatarUrl) this.setRealisticAvatar(app.avatarUrl);
-    this.setOutfit(app.outfitId || this.outfitId || 'realistic');
+    if (app.hairStyle != null) this.appearance.hairStyle = app.hairStyle;
+    this.setOutfit(app.outfitId || this.outfitId || 'casual');
   }
 
   hitsCars(pos) {
