@@ -299,7 +299,8 @@ export default class CityBuilder {
   }
 
   buildTrees() {
-    const xs = [-35, -25, -5, 5, 25, 35];
+    // Avoid x in [-6,6] so trees never land on the vertical road
+    const xs = [-35, -25, -15, 15, 25, 35];
     for (const x of xs) {
       this.createTree(x, 11);
       this.createTree(x, -11);
