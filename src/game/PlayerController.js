@@ -47,9 +47,14 @@ export default class PlayerController {
     this.activeModel = null;
     this.gltfReady = false;
 
-    // Realistic rigged character (default look)
-    this.gltfChar = new GLTFCharacter('/models/Soldier.glb', {
+    // Realistic rigged character (Ready Player Me avatar + animation library)
+    this.gltfChar = new GLTFCharacter('/models/avatar_male.glb', {
       scale: 1,
+      animations: {
+        idle: '/models/anim_idle.glb',
+        walk: '/models/anim_walk.glb',
+        run: '/models/anim_run.glb',
+      },
       onReady: () => {
         this.gltfReady = true;
         if (this.outfitId === 'realistic') this._showModel(this.gltfChar);

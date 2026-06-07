@@ -65,8 +65,11 @@ export default class CharacterCreator {
   }
 
   rebuildModel() {
-    // Show the realistic GLB character (matches the in-game player)
-    this.model = new GLTFCharacter('/models/Soldier.glb', { scale: 1 });
+    // Show the realistic avatar (matches the in-game player)
+    this.model = new GLTFCharacter('/models/avatar_male.glb', {
+      scale: 1,
+      animations: { idle: '/models/anim_idle.glb' },
+    });
     this.pivot.add(this.model.group);
   }
 
