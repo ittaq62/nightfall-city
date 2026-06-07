@@ -7,6 +7,7 @@ import TrafficSystem from './TrafficSystem.js';
 import OnlinePlayers from './OnlinePlayers.js';
 import Network from './Network.js';
 import Atmosphere from './Atmosphere.js';
+import TaxiSystem from './TaxiSystem.js';
 import HUD from './HUD.js';
 import InventorySystem from './InventorySystem.js';
 import MissionSystem, { jobForRep } from './MissionSystem.js';
@@ -168,6 +169,9 @@ export default class Game {
     // Bank
     this.bank = new BankSystem(this.playerState, this.hud, this.audio);
     this.bank.onClose = () => { this.player.inputBlocked = false; };
+
+    // Taxi job
+    this.taxi = new TaxiSystem({ scene: this.scene, hud: this.hud, audio: this.audio, playerState: this.playerState });
 
     // Detailed inventory panel (I)
     this.inventoryUI = new InventoryUI(this.inventory, (i) => this.useSlot(i, true));
@@ -420,10 +424,18 @@ export default class Game {
     const ePressed = eDown && !this.eKeyWasDown;
     this.eKeyWasDown = eDown;
 
-    // Driving: only option is to step out
+    // Driving: taxi actions take priority, otherwise step out
     if (this.mode === 'drive') {
-      this.hud.showInteractPrompt('Appuie sur E pour sortir du vehicule');
-      if (ePressed) this.exitVehicle();
+      if (this.taxi.state === 'toPickup' && this.taxi.nearTarget(playerPos)) {
+        this.hud.showInteractPrompt('Appuie sur E pour prendre le client');
+        if (ePressed) this.taxi.pickUp();
+      } else if (this.taxi.state === 'toDropoff' && this.taxi.nearTarget(playerPos)) {
+        this.hud.showInteractPrompt('Appuie sur E pour deposer le client');
+        if (ePressed) { this.taxi.dropOff(); this.save.save(); }
+      } else {
+        this.hud.showInteractPrompt('Appuie sur E pour sortir du vehicule');
+        if (ePressed) this.exitVehicle();
+      }
       return;
     }
 
@@ -469,6 +481,18 @@ export default class Game {
       return;
     }
 
+    // --- Taxi: pick up / drop off the active fare (on foot) ---
+    if (this.taxi.state !== 'idle' && this.taxi.nearTarget(playerPos)) {
+      if (this.taxi.state === 'toPickup') {
+        this.hud.showInteractPrompt('Appuie sur E pour prendre le client');
+        if (ePressed) this.taxi.pickUp();
+      } else {
+        this.hud.showInteractPrompt('Appuie sur E pour deposer le client');
+        if (ePressed) { this.taxi.dropOff(); this.save.save(); }
+      }
+      return;
+    }
+
     // --- Depot delivery ---
     const nearDelivery = distance2D(playerPos, this.city.deliveryZone) <= this.city.deliveryRadius;
     if (nearDelivery) {
@@ -499,6 +523,14 @@ export default class Game {
         this.player.inputBlocked = true;
         this.bank.open();
       }
+      return;
+    }
+
+    // --- Taxi stand: start a shift ---
+    const nearTaxi = distance2D(playerPos, this.city.taxiZone) <= this.city.taxiRadius;
+    if (nearTaxi && this.taxi.state === 'idle') {
+      this.hud.showInteractPrompt('Appuie sur E pour prendre un service taxi');
+      if (ePressed) this.taxi.startShift(playerPos);
       return;
     }
 
@@ -669,6 +701,16 @@ export default class Game {
       ctx.fill();
     }
 
+    // Taxi fare target
+    if (this.taxi.state !== 'idle' && this.taxi.targetPos) {
+      const tx = (this.taxi.targetPos.x - px) * scale;
+      const tz = (this.taxi.targetPos.z - pz) * scale;
+      ctx.fillStyle = this.taxi.state === 'toPickup' ? '#33ccff' : '#f5c542';
+      ctx.beginPath();
+      ctx.arc(tx, tz, 4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
     // Delivery zone marker (when a mission targets the depot)
     if (this.mission.hasActiveTarget('depot')) {
       const dx = (this.city.deliveryZone.x - px) * scale;
@@ -730,6 +772,7 @@ export default class Game {
     for (const npc of this.npcs) npc.update(this.player.position, delta, time);
     this.traffic.update(delta);
     this.atmosphere.update(delta, time);
+    this.taxi.update(delta, time, this.player.position);
     this.online.update(delta, time);
     const localMoving = this.mode === 'drive'
       ? Math.abs(this.vehicle.speed) > 0.5

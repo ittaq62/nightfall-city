@@ -25,6 +25,7 @@ export default class CityBuilder {
     this.buildDeliveryZone();
     this.buildShopEntrance();
     this.buildBank();
+    this.buildTaxiStand();
     this.buildBoundaryWalls();
     return this;
   }
@@ -470,6 +471,39 @@ export default class CityBuilder {
 
     this.bankZone = new THREE.Vector3(zoneX, 0, zoneZ);
     this.bankRadius = 2.6;
+  }
+
+  buildTaxiStand() {
+    const zoneX = 13, zoneZ = 6;
+
+    const padMat = new THREE.MeshStandardMaterial({
+      color: 0x4a4520, emissive: 0xf5c542, emissiveIntensity: 0.35,
+      transparent: true, opacity: 0.7,
+    });
+    const pad = new THREE.Mesh(new THREE.CircleGeometry(2, 32), padMat);
+    pad.rotation.x = -Math.PI / 2;
+    pad.position.set(zoneX, 0.05, zoneZ);
+    this.scene.add(pad);
+
+    // Sign pole
+    const pole = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.1, 0.12, 3, 8),
+      new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.8 })
+    );
+    pole.position.set(zoneX, 1.5, zoneZ);
+    this.scene.add(pole);
+
+    const sign = createTextSprite('TAXI', { color: '#f5c542', fontSize: 30, scale: 0.014 });
+    sign.position.set(zoneX, 3.4, zoneZ);
+    this.scene.add(sign);
+
+    const light = new THREE.PointLight(0xf5c542, 1, 10);
+    light.position.set(zoneX, 3, zoneZ);
+    this.scene.add(light);
+    this.nightLights.push({ light, base: 1 });
+
+    this.taxiZone = new THREE.Vector3(zoneX, 0, zoneZ);
+    this.taxiRadius = 2.6;
   }
 
   buildBoundaryWalls() {
