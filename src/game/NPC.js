@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { createTextSprite, distance2D } from './Utils.js';
-import CharacterModel from './CharacterModel.js';
+import GLTFCharacter from './GLTFCharacter.js';
 
 export default class NPC {
   constructor(scene, position, name = 'Tony', options = {}) {
@@ -20,11 +20,10 @@ export default class NPC {
   }
 
   buildModel(options) {
-    this.character = new CharacterModel({
-      skin: options.skin,
-      outfit: options.outfit,
-      pants: options.pants,
-      hair: options.hair,
+    const avatarUrl = options.avatarUrl || '/models/avatar_default.glb';
+    this.character = new GLTFCharacter(avatarUrl, {
+      targetHeight: 1.8,
+      animations: { idle: '/models/anim_idle.glb' }
     });
     this.group.add(this.character.group);
 
@@ -80,7 +79,9 @@ export default class NPC {
       this.character.group.rotation.y = angle;
     }
 
-    this.character.update(delta, 0); // idle animation
+    if (this.character.ready) {
+      this.character.update(delta, 0); // idle animation
+    }
     return this.inRange;
   }
 }

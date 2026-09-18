@@ -79,6 +79,7 @@ export default class CharacterCreator {
         this.previewLoading = false;
         if (this.preview) this.pivot.add(this.preview.group);
         setHint('');
+        if (this.onLoadComplete) this.onLoadComplete();
       },
     });
     // Fallback if a custom avatar fails to load (e.g. offline): keep the default

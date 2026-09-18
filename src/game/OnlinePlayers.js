@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import CharacterModel from './CharacterModel.js';
+import GLTFCharacter from './GLTFCharacter.js';
 import { createTextSprite, distance2D } from './Utils.js';
 
 // Simulated "online players" - purely local (no backend). They wander the city,
@@ -37,7 +37,10 @@ export default class OnlinePlayers {
 
     for (let i = 0; i < count; i++) {
       const start = this.waypoints[Math.floor(Math.random() * this.waypoints.length)];
-      const model = new CharacterModel({ outfit: OUTFITS[i % OUTFITS.length], skin: 0x7a5c44 });
+      const model = new GLTFCharacter('/models/avatar_default.glb', {
+        targetHeight: 1.8,
+        animations: { walk: '/models/anim_walk.glb' }
+      });
       model.group.position.set(start.x, 0, start.z);
 
       const tag = createTextSprite(NAMES[i % NAMES.length], { color: '#66ddff', fontSize: 26, scale: 0.011 });
@@ -81,7 +84,9 @@ export default class OnlinePlayers {
         p.model.group.position.set(p.pos.x, 0, p.pos.z);
         p.model.group.rotation.y = Math.atan2(vx, vz);
       }
-      p.model.update(delta, 0.5);
+      if (p.model.ready) {
+        p.model.update(delta, 0.5);
+      }
     }
 
     // Periodic ambient RP chat
