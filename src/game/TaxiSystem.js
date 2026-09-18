@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import CharacterModel from './CharacterModel.js';
+import GLTFCharacter from './GLTFCharacter.js';
 import { createTextSprite, distance2D } from './Utils.js';
 import { jobForRep } from './MissionSystem.js';
 
@@ -63,7 +63,10 @@ export default class TaxiSystem {
 
   spawnPassenger(pos) {
     this.removePassenger();
-    const model = new CharacterModel({ outfit: 0x886633, skin: 0x7a5c44 });
+    const model = new GLTFCharacter('/models/avatar_default.glb', {
+      targetHeight: 1.8,
+      animations: { idle: '/models/anim_idle.glb' }
+    });
     model.group.position.copy(pos);
     const tag = createTextSprite('Client', { color: '#33ccff', fontSize: 24, scale: 0.011 });
     tag.position.y = 2.3;
@@ -119,6 +122,6 @@ export default class TaxiSystem {
       this.ring.material.opacity = 0.5 + Math.sin(time * 3) * 0.3;
       this.ring.scale.setScalar(1 + Math.sin(time * 3) * 0.05);
     }
-    if (this.passenger) this.passenger.update(delta, 0);
+    if (this.passenger && this.passenger.ready) this.passenger.update(delta, 0);
   }
 }

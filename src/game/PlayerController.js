@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { checkBoxCollision, clamp } from './Utils.js';
-import CharacterModel from './CharacterModel.js';
 import GLTFCharacter from './GLTFCharacter.js';
 import { OUTFITS } from './Outfits.js';
 
@@ -46,7 +45,6 @@ export default class PlayerController {
     this.outfitId = 'casual';
     this.modelHolder = null;
     this.activeModel = null;
-    this.gltfReady = false;
     this.DEFAULT_AVATAR = '/models/avatar_default.glb';
     this._avatarUrl = this.DEFAULT_AVATAR;
     this._anims = {
@@ -55,9 +53,6 @@ export default class PlayerController {
       run: '/models/anim_run.glb',
     };
 
-    // Stylized placeholder shown only while the realistic avatar loads
-    this._showStylized('casual');
-
     // Load the realistic avatar (auto-scaled, animated)
     this._loadAvatar(this._avatarUrl);
   }
@@ -65,13 +60,11 @@ export default class PlayerController {
   // (Re)load a realistic .glb avatar — default one or a custom Ready Player Me URL
   _loadAvatar(url) {
     this._avatarUrl = url;
-    this.gltfReady = false;
     const char = new GLTFCharacter(url, {
       targetHeight: 1.8,
       animations: this._anims,
       onReady: () => {
         if (this.gltfChar !== char) return; // a newer avatar was requested
-        this.gltfReady = true;
         this.setOutfit(this.outfitId);
       },
       onError: () => {
@@ -80,6 +73,7 @@ export default class PlayerController {
       },
     });
     this.gltfChar = char;
+    this._showModel(char);
   }
 
   _showModel(model) {
@@ -91,28 +85,12 @@ export default class PlayerController {
     this.activeModel = model;
   }
 
-  _showStylized(outfitId) {
-    const o = OUTFITS[outfitId] || OUTFITS.casual;
-    this.character = new CharacterModel({
-      skin: this.appearance.skin,
-      hair: o.hair ?? this.appearance.hair,
-      hairStyle: this.appearance.hairStyle,
-      outfit: o.outfit,
-      pants: o.pants,
-      accessories: o.accessories || [],
-    });
-    this._showModel(this.character);
-  }
-
   setOutfit(outfitId) {
     this.outfitId = outfitId;
     const o = OUTFITS[outfitId] || OUTFITS.casual;
-    if (this.gltfReady && this.gltfChar) {
+    if (this.gltfChar && this.gltfChar.ready) {
       // Realistic avatar + outfit accessories (cap, vest, badge…) fitted on its bones
-      this._showModel(this.gltfChar);
       this.gltfChar.attachAccessories(o.accessories || []);
-    } else {
-      this._showStylized(outfitId); // placeholder until the avatar is loaded
     }
   }
 

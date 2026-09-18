@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import CharacterModel from './CharacterModel.js';
+import GLTFCharacter from './GLTFCharacter.js';
 import { createTextSprite } from './Utils.js';
 
 function buildRemoteCar() {
@@ -84,7 +84,15 @@ export default class Network {
     const wrapper = new THREE.Group();
     wrapper.position.set(p.x || 0, 0, p.z || 0);
 
-    const model = new CharacterModel({ outfit: 0x2a6e6e, skin: 0x7a5c44, hair: 0x101010 });
+    const avatarUrl = p.avatarUrl || '/models/avatar_default.glb';
+    const model = new GLTFCharacter(avatarUrl, {
+      targetHeight: 1.8,
+      animations: {
+        idle: '/models/anim_idle.glb',
+        walk: '/models/anim_walk.glb',
+        run: '/models/anim_run.glb',
+      }
+    });
     wrapper.add(model.group);
 
     const car = buildRemoteCar();
@@ -149,7 +157,9 @@ export default class Network {
       // Show car or character depending on remote state
       r.car.visible = r.inCar;
       r.model.group.visible = !r.inCar;
-      r.model.update(delta, r.moving && !r.inCar ? 0.5 : 0);
+      if (r.model.ready) {
+        r.model.update(delta, r.moving && !r.inCar ? 0.5 : 0);
+      }
     }
   }
 }

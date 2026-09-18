@@ -4,7 +4,7 @@ import CharacterCreator from './game/CharacterCreator.js';
 
 const canvas = document.getElementById('game-canvas');
 const game = new Game(canvas);
-game.start();
+/* game.start(); */
 
 // Expose for debugging in the console (handy during prototyping)
 window.game = game;
@@ -13,6 +13,13 @@ const overlay = document.getElementById('start-overlay');
 
 // Character creator with a live 3D preview
 const creator = new CharacterCreator(document.getElementById('cc-canvas'));
+creator.onLoadComplete = () => {
+  if (!game._started) {
+    game._started = true;
+    game.start();
+  }
+};
+
 creator.onPlay = (appearance) => {
   overlay.classList.add('hidden');
   creator.stop();
